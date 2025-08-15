@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Users, Lightbulb, Rocket, ArrowRight, CheckCircle } from 'lucide-react';
+import { Heart, Users, Lightbulb, Rocket, ArrowRight, CheckCircle, X, Star } from 'lucide-react';
 import Button from '../components/common/Button';
 
 const LandingPage: React.FC = () => {
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+
   const features = [
     {
       icon: Users,
@@ -30,34 +32,43 @@ const LandingPage: React.FC = () => {
     'Accédez à une communauté bienveillante'
   ];
 
+  const matches = [
+    { name: 'Marc', role: 'Développeur Full-stack', match: '92%' },
+    { name: 'Julie', role: 'Designer graphique', match: '87%' },
+    { name: 'Thomas', role: 'Chef de projet', match: '94%' }
+  ];
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen" style={{ backgroundColor: '#FAF7F3' }}>
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm border-b border-neutral-200">
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b" style={{ backgroundColor: 'rgba(250, 247, 243, 0.9)', borderColor: '#F0E4D3' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#D9A299' }}>
                 <Heart className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold text-neutral-900">ColabSwipe</span>
             </div>
             <Link to="/auth">
-              <Button variant="primary" size="sm">
+              <button 
+                className="px-6 py-2 rounded-lg font-medium text-white transition-all duration-200 hover:opacity-90"
+                style={{ backgroundColor: '#D9A299' }}
+              >
                 Se connecter
-              </Button>
+              </button>
             </Link>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 bg-gradient-to-br from-primary-50 via-white to-secondary-50">
+      <section className="pt-32 pb-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-5xl md:text-6xl font-bold text-neutral-900 mb-6 animate-slide-in">
               Trouvez Votre Prochain{' '}
-              <span className="bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">
+              <span style={{ color: '#D9A299' }}>
                 Collab'
               </span>
             </h1>
@@ -66,21 +77,32 @@ const LandingPage: React.FC = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-in" style={{ animationDelay: '0.2s' }}>
               <Link to="/auth">
-                <Button size="lg" icon={ArrowRight} iconPosition="right">
-                  Commencer l'aventure
-                </Button>
+                <button 
+                  className="px-8 py-4 rounded-xl font-medium text-white transition-all duration-200 hover:opacity-90 flex items-center space-x-2"
+                  style={{ backgroundColor: '#D9A299' }}
+                >
+                  <span>Commencer l'aventure</span>
+                  <ArrowRight className="w-5 h-5" />
+                </button>
               </Link>
-              <Button variant="outline" size="lg">
+              <button 
+                className="px-8 py-4 rounded-xl font-medium transition-all duration-200 border-2 hover:opacity-80"
+                style={{ 
+                  borderColor: '#DCC5B2',
+                  color: '#D9A299',
+                  backgroundColor: 'transparent'
+                }}
+              >
                 Découvrir la plateforme
-              </Button>
+              </button>
             </div>
           </div>
 
-          {/* Hero Visual */}
+          {/* Hero Visual - Profile Card */}
           <div className="mt-16 relative animate-slide-in" style={{ animationDelay: '0.3s' }}>
-            <div className="bg-white rounded-2xl shadow-card p-8 max-w-md mx-auto">
+            <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md mx-auto border" style={{ borderColor: '#F0E4D3' }}>
               <div className="flex items-center space-x-4 mb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-full flex items-center justify-center">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: '#D9A299' }}>
                   <Users className="w-8 h-8 text-white" />
                 </div>
                 <div>
@@ -89,22 +111,22 @@ const LandingPage: React.FC = () => {
                 </div>
               </div>
               <div className="flex space-x-2 mb-4">
-                <span className="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm">UI Design</span>
-                <span className="px-3 py-1 bg-secondary-100 text-secondary-700 rounded-full text-sm">Figma</span>
-                <span className="px-3 py-1 bg-accent-100 text-accent-700 rounded-full text-sm">Startup</span>
+                <span className="px-3 py-1 rounded-full text-sm" style={{ backgroundColor: '#F0E4D3', color: '#D9A299' }}>UI Design</span>
+                <span className="px-3 py-1 rounded-full text-sm" style={{ backgroundColor: '#F0E4D3', color: '#D9A299' }}>Figma</span>
+                <span className="px-3 py-1 rounded-full text-sm" style={{ backgroundColor: '#F0E4D3', color: '#D9A299' }}>Startup</span>
               </div>
               <p className="text-neutral-600 text-sm mb-6">
                 Passionnée par l'innovation, je cherche un développeur pour créer une app révolutionnaire...
               </p>
               <div className="flex justify-center space-x-4">
                 <button className="w-12 h-12 bg-red-100 hover:bg-red-200 rounded-full flex items-center justify-center transition-colors">
-                  ❌
+                  <X className="w-6 h-6 text-red-500" />
                 </button>
                 <button className="w-12 h-12 bg-yellow-100 hover:bg-yellow-200 rounded-full flex items-center justify-center transition-colors">
-                  ⭐
+                  <Star className="w-6 h-6 text-yellow-500" />
                 </button>
                 <button className="w-12 h-12 bg-green-100 hover:bg-green-200 rounded-full flex items-center justify-center transition-colors">
-                  ❤️
+                  <Heart className="w-6 h-6 text-green-500" />
                 </button>
               </div>
             </div>
@@ -130,11 +152,14 @@ const LandingPage: React.FC = () => {
               return (
                 <div
                   key={index}
-                  className="text-center p-8 rounded-2xl bg-white shadow-card hover:shadow-card-hover transition-all duration-300 animate-slide-in"
-                  style={{ animationDelay: `${index * 0.1}s` }}
+                  className="text-center p-8 rounded-2xl bg-white shadow-lg hover:shadow-xl transition-all duration-300 animate-slide-in border"
+                  style={{ 
+                    animationDelay: `${index * 0.1}s`,
+                    borderColor: '#F0E4D3'
+                  }}
                 >
-                  <div className="w-16 h-16 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                    <Icon className="w-8 h-8 text-primary-600" />
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#F0E4D3' }}>
+                    <Icon className="w-8 h-8" style={{ color: '#D9A299' }} />
                   </div>
                   <h3 className="text-xl font-semibold text-neutral-900 mb-4">{feature.title}</h3>
                   <p className="text-neutral-600">{feature.description}</p>
@@ -146,7 +171,7 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 px-4 bg-neutral-50">
+      <section className="py-20 px-4" style={{ backgroundColor: '#F0E4D3' }}>
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -159,34 +184,34 @@ const LandingPage: React.FC = () => {
               <div className="space-y-4">
                 {benefits.map((benefit, index) => (
                   <div key={index} className="flex items-start space-x-3">
-                    <CheckCircle className="w-6 h-6 text-secondary-500 mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-6 h-6 mt-0.5 flex-shrink-0" style={{ color: '#D9A299' }} />
                     <span className="text-neutral-700">{benefit}</span>
                   </div>
                 ))}
               </div>
               <div className="mt-8">
                 <Link to="/auth">
-                  <Button size="lg" icon={ArrowRight} iconPosition="right">
-                    Rejoindre maintenant
-                  </Button>
+                  <button 
+                    className="px-8 py-4 rounded-xl font-medium text-white transition-all duration-200 hover:opacity-90 flex items-center space-x-2"
+                    style={{ backgroundColor: '#D9A299' }}
+                  >
+                    <span>Rejoindre maintenant</span>
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
                 </Link>
               </div>
             </div>
 
             <div className="relative">
-              <div className="bg-white rounded-2xl shadow-card p-6">
+              <div className="bg-white rounded-2xl shadow-lg p-6 border" style={{ borderColor: '#DCC5B2' }}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-neutral-900">Nouveaux Matches</h3>
-                  <span className="bg-secondary-100 text-secondary-700 px-2 py-1 rounded-full text-sm">3</span>
+                  <span className="px-2 py-1 rounded-full text-sm text-white" style={{ backgroundColor: '#D9A299' }}>3</span>
                 </div>
                 <div className="space-y-3">
-                  {[
-                    { name: 'Marc', role: 'Développeur Full-stack', match: '92%' },
-                    { name: 'Julie', role: 'Designer graphique', match: '87%' },
-                    { name: 'Thomas', role: 'Chef de projet', match: '94%' }
-                  ].map((person, index) => (
-                    <div key={index} className="flex items-center space-x-3 p-3 bg-neutral-50 rounded-lg">
-                      <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-full flex items-center justify-center">
+                  {matches.map((person, index) => (
+                    <div key={index} className="flex items-center space-x-3 p-3 rounded-lg" style={{ backgroundColor: '#FAF7F3' }}>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#D9A299' }}>
                         <span className="text-white font-semibold">{person.name[0]}</span>
                       </div>
                       <div className="flex-1">
@@ -194,7 +219,7 @@ const LandingPage: React.FC = () => {
                         <p className="text-sm text-neutral-600">{person.role}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-medium text-secondary-600">{person.match}</p>
+                        <p className="text-sm font-medium" style={{ color: '#D9A299' }}>{person.match}</p>
                         <p className="text-xs text-neutral-500">match</p>
                       </div>
                     </div>
@@ -206,19 +231,164 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section className="py-20 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-neutral-900 mb-6">
+              Choisissez votre plan
+            </h2>
+            
+            {/* Billing Toggle */}
+            <div className="flex items-center justify-center space-x-4 mb-8">
+              <span className={`font-medium ${billingCycle === 'monthly' ? 'text-neutral-900' : 'text-neutral-500'}`}>
+                Mois
+              </span>
+              <button
+                onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
+                className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none"
+                style={{ backgroundColor: billingCycle === 'yearly' ? '#D9A299' : '#DCC5B2' }}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    billingCycle === 'yearly' ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+              <span className={`font-medium ${billingCycle === 'yearly' ? 'text-neutral-900' : 'text-neutral-500'}`}>
+                Année
+              </span>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Free Plan */}
+            <div className="bg-white rounded-2xl p-8 shadow-lg border" style={{ borderColor: '#F0E4D3' }}>
+              <h3 className="text-2xl font-bold text-neutral-900 mb-2">Gratuit</h3>
+              <p className="text-neutral-600 mb-6">Pour démarrer et découvrir la plateforme.</p>
+              
+              <div className="mb-6">
+                <span className="text-4xl font-bold text-neutral-900">0€</span>
+                <span className="text-neutral-600 ml-2">/ {billingCycle === 'monthly' ? 'mois' : 'année'}</span>
+              </div>
+
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5" style={{ color: '#D9A299' }} />
+                  <span className="text-neutral-700">Créer un profil</span>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5" style={{ color: '#D9A299' }} />
+                  <span className="text-neutral-700">Découvrir des projets</span>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5" style={{ color: '#D9A299' }} />
+                  <span className="text-neutral-700">30 swipes par jour</span>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5" style={{ color: '#D9A299' }} />
+                  <span className="text-neutral-700">1 projet actif</span>
+                </li>
+              </ul>
+
+              <Link to="/auth">
+                <button 
+                  className="w-full py-3 rounded-xl font-medium transition-all duration-200 border-2 hover:opacity-80"
+                  style={{ 
+                    borderColor: '#DCC5B2',
+                    color: '#D9A299',
+                    backgroundColor: 'transparent'
+                  }}
+                >
+                  Commencer gratuitement
+                </button>
+              </Link>
+            </div>
+
+            {/* Premium Plan */}
+            <div className="bg-white rounded-2xl p-8 shadow-lg border-2 relative" style={{ borderColor: '#D9A299' }}>
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <span className="px-4 py-1 rounded-full text-sm font-medium text-white" style={{ backgroundColor: '#D9A299' }}>
+                  Le plus populaire
+                </span>
+              </div>
+              
+              {billingCycle === 'yearly' && (
+                <div className="absolute -top-2 -right-2 w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  -25%
+                </div>
+              )}
+
+              <h3 className="text-2xl font-bold mb-2" style={{ color: '#D9A299' }}>Premium</h3>
+              <p className="text-neutral-600 mb-6">Pour une expérience sans limite et des fonctionnalités exclusives.</p>
+              
+              <div className="mb-6">
+                <span className="text-4xl font-bold text-neutral-900">
+                  {billingCycle === 'monthly' ? '9,99€' : '89,99€'}
+                </span>
+                <span className="text-neutral-600 ml-2">/ {billingCycle === 'monthly' ? 'mois' : 'année'}</span>
+              </div>
+
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5" style={{ color: '#D9A299' }} />
+                  <span className="text-neutral-700">Tous les avantages du plan gratuit</span>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5" style={{ color: '#D9A299' }} />
+                  <span className="text-neutral-700">Assistant IA intégré</span>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5" style={{ color: '#D9A299' }} />
+                  <span className="text-neutral-700">5 Super Likes / jour</span>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5" style={{ color: '#D9A299' }} />
+                  <span className="text-neutral-700">Statistiques avancées</span>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5" style={{ color: '#D9A299' }} />
+                  <span className="text-neutral-700">5 projets actifs</span>
+                </li>
+                <li className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5" style={{ color: '#D9A299' }} />
+                  <span className="text-neutral-700">Badge Premium</span>
+                </li>
+              </ul>
+
+              <Link to="/auth">
+                <button 
+                  className="w-full py-3 rounded-xl font-medium text-white transition-all duration-200 hover:opacity-90"
+                  style={{ backgroundColor: '#D9A299' }}
+                >
+                  Choisir le plan Premium
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-primary-500 to-secondary-500">
+      <section className="py-20 px-4" style={{ backgroundColor: '#D9A299' }}>
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
             Prêt à transformer vos idées en réalité ?
           </h2>
-          <p className="text-xl text-primary-100 mb-8">
+          <p className="text-xl mb-8" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
             Rejoignez des milliers de créateurs qui collaborent déjà sur ColabSwipe
           </p>
           <Link to="/auth">
-            <Button variant="secondary" size="lg" icon={ArrowRight} iconPosition="right">
-              Créer mon compte gratuitement
-            </Button>
+            <button 
+              className="px-8 py-4 rounded-xl font-medium transition-all duration-200 hover:opacity-90 flex items-center space-x-2 mx-auto"
+              style={{ 
+                backgroundColor: 'white',
+                color: '#D9A299'
+              }}
+            >
+              <span>Créer mon compte gratuitement</span>
+              <ArrowRight className="w-5 h-5" />
+            </button>
           </Link>
         </div>
       </section>
@@ -228,7 +398,7 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#D9A299' }}>
                 <Heart className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold text-white">ColabSwipe</span>
