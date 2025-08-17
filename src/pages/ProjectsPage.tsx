@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Calendar, Users, MapPin, Tag, Search, Filter, Eye, Edit, Trash2, RefreshCw, Rocket } from 'lucide-react';
+import { Plus, Search, Filter, RefreshCw, Users, Briefcase } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserProjects, getDiscoverProjects } from '../services/projects';
 import CreateProjectModal from '../components/projects/CreateProjectModal';
@@ -33,6 +33,7 @@ const ProjectsPage: React.FC = () => {
   const [myProjects, setMyProjects] = useState<Project[]>([]);
   const [discoverProjects, setDiscoverProjectsList] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -60,46 +61,27 @@ const ProjectsPage: React.FC = () => {
   };
 
   const handleProjectCreated = () => {
-    loadProjects(); // Recharger la liste des projets
+    loadProjects();
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-700';
-      case 'completed':
-        return 'bg-blue-100 text-blue-700';
-      case 'paused':
-        return 'bg-yellow-100 text-yellow-700';
-      case 'cancelled':
-        return 'bg-red-100 text-red-700';
-      default:
-        return 'bg-neutral-100 text-neutral-700';
-    }
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadProjects();
+    setRefreshing(false);
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'Actif';
-      case 'completed':
-        return 'Terminé';
-      case 'paused':
-        return 'En pause';
-      case 'cancelled':
-        return 'Annulé';
-      default:
-        return status;
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FAF7F3' }}>
+        <div className="text-center">
+          <LoadingSpinner size="xl" className="mb-4" />
+          <h2 className="text-xl font-semibold text-neutral-700 mb-2">
+            Chargement des projets...
+          </h2>
+        </div>
+      </div>
+    );
+  }
 
   const currentProjects = activeTab === 'my-projects' ? myProjects : discoverProjects;
   const filteredProjects = currentProjects.filter(project =>
@@ -108,49 +90,86 @@ const ProjectsPage: React.FC = () => {
     project.required_skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner size="xl" className="mb-4" />
-          <h2 className="text-xl font-semibold text-neutral-700 mb-2">
-            Chargement des projets...
-          </h2>
-          <p className="text-neutral-500">
-            {activeTab === 'my-projects' ? 'Récupération de vos projets' : 'Découverte de nouveaux projets'}
-          </p>
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: '#FAF7F3' }}>
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b" style={{ borderColor: '#F0E4D3' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#D9A299' }}>
+                <span className="text-white font-bold">♥</span>
+              </div>
+              <span className="text-xl font-bold text-neutral-900">ColabSwipe</span>
+            </div>
+            
+            <nav className="flex space-x-8">
+              <button className="flex items-center space-x-2 px-3 py-2 rounded-lg font-medium text-neutral-600 hover:text-neutral-900">
+                <span>🔍</span>
+                <span>Découvrir</span>
+              </button>
+              <button className="flex items-center space-x-2 px-3 py-2 rounded-lg font-medium text-neutral-600 hover:text-neutral-900">
+                <span>♥</span>
+                <span>Matches</span>
+              </button>
+              <button className="flex items-center space-x-2 px-3 py-2 rounded-lg font-medium text-neutral-600 hover:text-neutral-900">
+                <span>💬</span>
+                <span>Messages</span>
+              </button>
+              <button 
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg font-medium"
+                style={{ 
+                  backgroundColor: '#F0E4D3',
+                  color: '#D9A299'
+                }}
+              >
+                <span>📁</span>
+                <span>Projets</span>
+              </button>
+            </nav>
+
+            <div className="flex items-center space-x-4">
+              <button className="p-2 text-neutral-600 hover:text-neutral-900">
+                <span>🔔</span>
+              </button>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#DCC5B2' }}>
+                <span className="text-sm font-medium">M</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    );
-  }
 
-  return (
-    <div className="min-h-screen bg-neutral-50 p-4">
-      <div className="max-w-6xl mx-auto">
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-neutral-900 mb-2">Projets</h1>
+            <h1 className="text-2xl font-bold text-neutral-900 mb-2">Projets</h1>
             <p className="text-neutral-600">Gérez vos projets et découvrez de nouvelles opportunités</p>
           </div>
-          <Button
-            icon={Plus}
+          <button
             onClick={() => setShowCreateModal(true)}
-            className="mt-4 sm:mt-0"
+            className="mt-4 sm:mt-0 flex items-center space-x-2 px-6 py-3 rounded-xl font-medium text-white transition-all duration-200 hover:opacity-90"
+            style={{ backgroundColor: '#D9A299' }}
           >
-            Nouveau projet
-          </Button>
+            <Plus className="w-5 h-5" />
+            <span>Nouveau projet</span>
+          </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex space-x-1 bg-neutral-200 rounded-xl p-1 mb-8 max-w-md">
+        <div className="flex space-x-1 mb-8 max-w-md">
           <button
             onClick={() => setActiveTab('my-projects')}
             className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
               activeTab === 'my-projects'
-                ? 'bg-white text-neutral-900 shadow-sm'
+                ? 'text-neutral-900'
                 : 'text-neutral-600 hover:text-neutral-900'
             }`}
+            style={{
+              backgroundColor: activeTab === 'my-projects' ? '#F0E4D3' : 'transparent'
+            }}
           >
             Mes projets ({myProjects.length})
           </button>
@@ -158,9 +177,12 @@ const ProjectsPage: React.FC = () => {
             onClick={() => setActiveTab('discover')}
             className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
               activeTab === 'discover'
-                ? 'bg-white text-neutral-900 shadow-sm'
+                ? 'text-neutral-900'
                 : 'text-neutral-600 hover:text-neutral-900'
             }`}
+            style={{
+              backgroundColor: activeTab === 'discover' ? '#F0E4D3' : 'transparent'
+            }}
           >
             Découvrir ({discoverProjects.length})
           </button>
@@ -176,181 +198,84 @@ const ProjectsPage: React.FC = () => {
               icon={Search}
             />
           </div>
-          <Button variant="outline" icon={Filter}>
-            Filtres
-          </Button>
-          <Button variant="ghost" icon={RefreshCw} onClick={loadProjects}>
-            Actualiser
-          </Button>
+          <button
+            className="flex items-center space-x-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 border-2 hover:opacity-80"
+            style={{ 
+              borderColor: '#DCC5B2',
+              color: '#D9A299',
+              backgroundColor: 'transparent'
+            }}
+          >
+            <Filter className="w-4 h-4" />
+            <span>Filtres</span>
+          </button>
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center space-x-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 border-2 hover:opacity-80 disabled:opacity-50"
+            style={{ 
+              borderColor: '#DCC5B2',
+              color: '#D9A299',
+              backgroundColor: 'transparent'
+            }}
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <span>Actualiser</span>
+          </button>
         </div>
 
-        {/* Projects Grid */}
-        {filteredProjects.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProjects.map((project) => (
-              <div
-                key={project.id}
-                className="bg-white rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-200 overflow-hidden group"
-              >
-                <div className="p-6">
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-neutral-900 mb-2 line-clamp-2">
-                        {project.title}
-                      </h3>
-                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
-                        {getStatusText(project.status)}
-                      </span>
-                    </div>
-                    
-                    {activeTab === 'my-projects' && (
-                      <div className="flex space-x-1 ml-2">
-                        <button className="p-1 hover:bg-neutral-100 rounded transition-colors">
-                          <Edit className="w-4 h-4 text-neutral-600" />
-                        </button>
-                        <button className="p-1 hover:bg-red-100 rounded transition-colors">
-                          <Trash2 className="w-4 h-4 text-red-600" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Creator info for discover tab */}
-                  {activeTab === 'discover' && project.creator && (
-                    <div className="mb-3">
-                      <p className="text-sm text-neutral-600">
-                        Par {project.creator.first_name} {project.creator.last_name}
-                      </p>
-                      {project.creator.activity && (
-                        <p className="text-xs text-neutral-500">{project.creator.activity}</p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Description */}
-                  <p className="text-neutral-600 text-sm mb-4 line-clamp-3">
-                    {project.description}
-                  </p>
-
-                  {/* Skills */}
-                  {project.required_skills && project.required_skills.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-4">
-                      {project.required_skills.slice(0, 3).map((skill) => (
-                        <span key={skill} className="px-2 py-1 bg-primary-100 text-primary-700 rounded text-xs">
-                          {skill}
-                        </span>
-                      ))}
-                      {project.required_skills.length > 3 && (
-                        <span className="px-2 py-1 bg-neutral-100 text-neutral-600 rounded text-xs">
-                          +{project.required_skills.length - 3}
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Meta Info */}
-                  <div className="space-y-2 text-xs text-neutral-500 mb-4">
-                    {project.collaboration_type && (
-                      <div className="flex items-center space-x-1">
-                        <Tag className="w-3 h-3" />
-                        <span>{project.collaboration_type}</span>
-                      </div>
-                    )}
-                    {project.deadline && (
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="w-3 h-3" />
-                        <span>Échéance: {formatDate(project.deadline)}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center space-x-1">
-                      <Calendar className="w-3 h-3" />
-                      <span>Créé le {formatDate(project.created_at)}</span>
-                    </div>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="flex items-center justify-between text-xs text-neutral-500 mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex items-center space-x-1">
-                        <Users className="w-3 h-3" />
-                        <span>{project.collaborators || 0} collaborateurs</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Eye className="w-3 h-3" />
-                        <span>{project.views || 0} vues</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex space-x-2">
-                    {activeTab === 'my-projects' ? (
-                      <>
-                        <Button variant="outline" size="sm" className="flex-1">
-                          Gérer
-                        </Button>
-                        <Button variant="primary" size="sm" className="flex-1">
-                          Voir détails
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <Button variant="outline" size="sm" className="flex-1">
-                          En savoir plus
-                        </Button>
-                        <Button variant="primary" size="sm" className="flex-1">
-                          Postuler
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+        {/* Empty State */}
+        <div className="text-center py-16">
+          {/* Icon */}
+          <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#F0E4D3' }}>
+            <Plus className="w-12 h-12" style={{ color: '#D9A299' }} />
           </div>
-        ) : (
-          /* Empty State */
-          <div className="text-center py-16">
-            <div className="w-24 h-24 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Plus className="w-12 h-12 text-neutral-400" />
+
+          {/* Title */}
+          <h2 className="text-2xl font-semibold text-neutral-900 mb-4">
+            Aucun projet pour le moment
+          </h2>
+
+          {/* Description */}
+          <p className="text-neutral-600 mb-8 max-w-md mx-auto">
+            Créez votre premier projet pour commencer à collaborer
+          </p>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center space-x-2 px-6 py-3 rounded-xl font-medium text-white transition-all duration-200 hover:opacity-90"
+              style={{ backgroundColor: '#D9A299' }}
+            >
+              <Plus className="w-5 h-5" />
+              <span>Créer mon premier projet</span>
+            </button>
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 border-2 hover:opacity-80 disabled:opacity-50"
+              style={{ 
+                borderColor: '#DCC5B2',
+                color: '#D9A299',
+                backgroundColor: 'transparent'
+              }}
+            >
+              <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+              <span>{refreshing ? 'Actualisation...' : 'Actualiser'}</span>
+            </button>
+          </div>
+
+          {/* Encouragement Section */}
+          <div className="mt-16 p-6 rounded-2xl" style={{ backgroundColor: '#F0E4D3' }}>
+            <div className="flex items-center justify-center mb-4">
+              <span className="text-2xl">💡</span>
             </div>
-            <h3 className="text-xl font-semibold text-neutral-700 mb-2">
-              {searchQuery ? 'Aucun projet trouvé' : 'Aucun projet pour le moment'}
+            <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+              Soyez patient ! Créez votre premier projet pour attirer des collaborateurs !
             </h3>
-            <p className="text-neutral-500 mb-6">
-              {searchQuery 
-                ? 'Essayez avec d\'autres mots-clés'
-                : activeTab === 'my-projects' 
-                  ? 'Créez votre premier projet pour commencer à collaborer'
-                  : 'Revenez plus tard pour découvrir de nouveaux projets'
-              }
-            </p>
-            <div className="space-y-3">
-              {activeTab === 'my-projects' && !searchQuery && (
-                <Button icon={Plus} onClick={() => setShowCreateModal(true)}>
-                  Créer mon premier projet
-                </Button>
-              )}
-              <Button variant="outline" onClick={loadProjects} icon={RefreshCw}>
-                Actualiser
-              </Button>
-              {currentProjects.length === 0 && (
-                <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 mt-4">
-                  <h3 className="font-semibold text-primary-800 mb-2">
-                    🎉 Soyez patient !
-                  </h3>
-                  <p className="text-primary-700 text-sm">
-                    {activeTab === 'my-projects' 
-                      ? "Créez votre premier projet pour attirer des collaborateurs !"
-                      : "De nouveaux projets sont ajoutés régulièrement. Revenez bientôt !"
-                    }
-                  </p>
-                </div>
-              )}
-            </div>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Create Project Modal */}

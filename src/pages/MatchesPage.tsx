@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MessageCircle, Users, Briefcase, Calendar, MapPin, RefreshCw } from 'lucide-react';
+import { RefreshCw, Users, Briefcase } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserMatches } from '../services/matching';
 import Button from '../components/common/Button';
@@ -27,6 +27,7 @@ const MatchesPage: React.FC = () => {
   const [peopleMatches, setPeopleMatches] = useState<Match[]>([]);
   const [projectMatches, setProjectMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -41,7 +42,6 @@ const MatchesPage: React.FC = () => {
     try {
       const matches = await getUserMatches(user.id);
       setPeopleMatches(matches);
-      // TODO: Charger les matches de projets quand cette fonctionnalité sera implémentée
       setProjectMatches([]);
     } catch (error) {
       console.error('Erreur chargement matches:', error);
@@ -50,59 +50,98 @@ const MatchesPage: React.FC = () => {
     }
   };
 
-  const newMatches = peopleMatches.filter(match => {
-    const matchDate = new Date(match.created_at);
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    return matchDate > oneDayAgo;
-  });
-
-  const currentMatches = activeTab === 'people' ? peopleMatches : projectMatches;
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (diffInDays === 0) return 'Aujourd\'hui';
-    if (diffInDays === 1) return 'Hier';
-    if (diffInDays < 7) return `Il y a ${diffInDays} jours`;
-    return date.toLocaleDateString('fr-FR');
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadMatches();
+    setRefreshing(false);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FAF7F3' }}>
         <div className="text-center">
           <LoadingSpinner size="xl" className="mb-4" />
           <h2 className="text-xl font-semibold text-neutral-700 mb-2">
             Chargement de vos matches...
           </h2>
-          <p className="text-neutral-500">
-            Recherche de vos connexions
-          </p>
         </div>
       </div>
     );
   }
 
+  const currentMatches = activeTab === 'people' ? peopleMatches : projectMatches;
+
   return (
-    <div className="min-h-screen bg-neutral-50 p-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
+    <div className="min-h-screen" style={{ backgroundColor: '#FAF7F3' }}>
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b" style={{ borderColor: '#F0E4D3' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#D9A299' }}>
+                <span className="text-white font-bold">♥</span>
+              </div>
+              <span className="text-xl font-bold text-neutral-900">ColabSwipe</span>
+            </div>
+            
+            <nav className="flex space-x-8">
+              <button className="flex items-center space-x-2 px-3 py-2 rounded-lg font-medium text-neutral-600 hover:text-neutral-900">
+                <span>🔍</span>
+                <span>Découvrir</span>
+              </button>
+              <button 
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg font-medium"
+                style={{ 
+                  backgroundColor: '#F0E4D3',
+                  color: '#D9A299'
+                }}
+              >
+                <span>♥</span>
+                <span>Matches</span>
+              </button>
+              <button className="flex items-center space-x-2 px-3 py-2 rounded-lg font-medium text-neutral-600 hover:text-neutral-900">
+                <span>💬</span>
+                <span>Messages</span>
+              </button>
+              <button className="flex items-center space-x-2 px-3 py-2 rounded-lg font-medium text-neutral-600 hover:text-neutral-900">
+                <span>📁</span>
+                <span>Projets</span>
+              </button>
+            </nav>
+
+            <div className="flex items-center space-x-4">
+              <button className="p-2 text-neutral-600 hover:text-neutral-900">
+                <span>🔔</span>
+              </button>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#DCC5B2' }}>
+                <span className="text-sm font-medium">M</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Page Title */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-neutral-900 mb-2">Mes Matches</h1>
-          <p className="text-neutral-600">Vos connexions et projets collaboratifs</p>
+          <h1 className="text-2xl font-bold text-neutral-900 mb-2">
+            Vos connexions et projets collaboratifs
+          </h1>
         </div>
 
         {/* Tabs */}
-        <div className="flex space-x-1 bg-neutral-200 rounded-xl p-1 mb-8 max-w-md">
+        <div className="flex space-x-1 mb-8 max-w-md">
           <button
             onClick={() => setActiveTab('people')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
               activeTab === 'people'
-                ? 'bg-white text-neutral-900 shadow-sm'
+                ? 'text-neutral-900'
                 : 'text-neutral-600 hover:text-neutral-900'
             }`}
+            style={{
+              backgroundColor: activeTab === 'people' ? '#F0E4D3' : 'transparent'
+            }}
           >
             <Users className="w-4 h-4" />
             <span>Personnes ({peopleMatches.length})</span>
@@ -111,167 +150,71 @@ const MatchesPage: React.FC = () => {
             onClick={() => setActiveTab('projects')}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
               activeTab === 'projects'
-                ? 'bg-white text-neutral-900 shadow-sm'
+                ? 'text-neutral-900'
                 : 'text-neutral-600 hover:text-neutral-900'
             }`}
+            style={{
+              backgroundColor: activeTab === 'projects' ? '#F0E4D3' : 'transparent'
+            }}
           >
             <Briefcase className="w-4 h-4" />
             <span>Projets ({projectMatches.length})</span>
           </button>
         </div>
 
-        {/* New Matches Carousel */}
-        {newMatches.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
-              <span className="w-3 h-3 bg-secondary-500 rounded-full mr-2 animate-pulse"></span>
-              Nouveaux matches
-            </h2>
-            <div className="flex space-x-4 overflow-x-auto py-2 scrollbar-hide">
-              {newMatches.map((match) => (
-                <div
-                  key={match.id}
-                  className="flex-shrink-0 bg-white rounded-2xl p-4 shadow-card hover:shadow-card-hover transition-all duration-200 cursor-pointer group"
-                >
-                  <div className="text-center w-24">
-                    <div className="relative mb-3">
-                      {match.otherUser.avatar_url ? (
-                        <img
-                          src={match.otherUser.avatar_url}
-                          alt={match.otherUser.first_name}
-                          className="w-16 h-16 rounded-full object-cover mx-auto group-hover:scale-105 transition-transform duration-200"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-full flex items-center justify-center mx-auto group-hover:scale-105 transition-transform duration-200">
-                          <span className="text-white font-semibold">
-                            {match.otherUser.first_name[0]}{match.otherUser.last_name[0]}
-                          </span>
-                        </div>
-                      )}
-                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-secondary-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
-                        !
-                      </div>
-                    </div>
-                    <p className="font-medium text-neutral-900 text-sm">{match.otherUser.first_name}</p>
-                    <p className="text-xs text-neutral-500 mt-1">Nouveau</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Empty State */}
+        <div className="text-center py-16">
+          {/* Icon */}
+          <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#F0E4D3' }}>
+            <Users className="w-12 h-12" style={{ color: '#D9A299' }} />
           </div>
-        )}
 
-        {/* Matches Grid */}
-        {currentMatches.length > 0 ? (
-          <div className="grid gap-4">
-            {currentMatches.map((match) => (
-              <div
-                key={match.id}
-                className="bg-white rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all duration-200 cursor-pointer group"
-              >
-                <div className="flex items-start space-x-4">
-                  {/* Avatar */}
-                  <div className="relative flex-shrink-0">
-                    {match.otherUser.avatar_url ? (
-                      <img
-                        src={match.otherUser.avatar_url}
-                        alt={`${match.otherUser.first_name} ${match.otherUser.last_name}`}
-                        className="w-16 h-16 rounded-full object-cover group-hover:scale-105 transition-transform duration-200"
-                      />
-                    ) : (
-                      <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-full flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-                        <span className="text-white font-semibold">
-                          {match.otherUser.first_name[0]}{match.otherUser.last_name[0]}
-                        </span>
-                      </div>
-                    )}
-                    {newMatches.some(newMatch => newMatch.id === match.id) && (
-                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-secondary-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
-                        !
-                      </div>
-                    )}
-                  </div>
+          {/* Title */}
+          <h2 className="text-2xl font-semibold text-neutral-900 mb-4">
+            Aucun match pour le moment
+          </h2>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="font-semibold text-neutral-900 text-lg">
-                          {match.otherUser.first_name} {match.otherUser.last_name}
-                        </h3>
-                        {match.otherUser.activity && (
-                          <p className="text-neutral-600">{match.otherUser.activity}</p>
-                        )}
-                      </div>
-                      <div className="text-right text-sm text-neutral-500">
-                        <div className="flex items-center space-x-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>{formatDate(match.created_at)}</span>
-                        </div>
-                      </div>
-                    </div>
+          {/* Description */}
+          <p className="text-neutral-600 mb-8 max-w-md mx-auto">
+            Continuez à swiper pour découvrir de nouveaux collaborateurs !
+          </p>
 
-                    {match.otherUser.location && (
-                      <div className="flex items-center text-sm text-neutral-500 mb-3">
-                        <MapPin className="w-4 h-4 mr-1" />
-                        <span>{match.otherUser.location}</span>
-                      </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="flex space-x-3">
-                      <Button
-                        variant={newMatches.some(newMatch => newMatch.id === match.id) ? 'primary' : 'outline'}
-                        size="sm"
-                        icon={MessageCircle}
-                        className="flex-1"
-                      >
-                        {newMatches.some(newMatch => newMatch.id === match.id) ? 'Dire bonjour' : 'Continuer la conversation'}
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        Voir profil
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="flex items-center space-x-2 px-6 py-3 rounded-xl font-medium text-white transition-all duration-200 hover:opacity-90 disabled:opacity-50"
+              style={{ backgroundColor: '#D9A299' }}
+            >
+              <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+              <span>{refreshing ? 'Actualisation...' : 'Actualiser'}</span>
+            </button>
+            <button
+              className="px-6 py-3 rounded-xl font-medium transition-all duration-200 border-2 hover:opacity-80"
+              style={{ 
+                borderColor: '#DCC5B2',
+                color: '#D9A299',
+                backgroundColor: 'transparent'
+              }}
+            >
+              Découvrir des profils
+            </button>
           </div>
-        ) : (
-          /* Empty State */
-          <div className="text-center py-16">
-            <div className="w-24 h-24 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Users className="w-12 h-12 text-neutral-400" />
+
+          {/* Encouragement Section */}
+          <div className="mt-16 p-6 rounded-2xl" style={{ backgroundColor: '#F0E4D3' }}>
+            <div className="flex items-center justify-center mb-4">
+              <span className="text-2xl">🎉</span>
             </div>
-            <h3 className="text-xl font-semibold text-neutral-700 mb-2">
-              Aucun match pour le moment
+            <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+              Soyez patient !
             </h3>
-            <p className="text-neutral-500 mb-6">
-              {activeTab === 'people' 
-                ? "Continuez à swiper pour découvrir de nouveaux collaborateurs !"
-                : "Explorez des projets pour trouver des opportunités de collaboration !"
-              }
+            <p className="text-neutral-700 text-sm">
+              Plus vous swipez, plus vous avez de chances de trouver des matches. Les premiers utilisateurs arrivent !
             </p>
-            <div className="space-y-3">
-              <Button onClick={loadMatches} icon={RefreshCw}>
-                Actualiser
-              </Button>
-              <Button variant="outline" onClick={() => window.location.href = '/discover'}>
-                Découvrir des profils
-              </Button>
-              {peopleMatches.length === 0 && (
-                <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 mt-4">
-                  <h3 className="font-semibold text-primary-800 mb-2">
-                    🎉 Soyez patient !
-                  </h3>
-                  <p className="text-primary-700 text-sm">
-                    Plus vous swipez, plus vous avez de chances de trouver des matches. Les premiers utilisateurs arrivent !
-                  </p>
-                </div>
-              )}
-            </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
