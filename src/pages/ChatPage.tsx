@@ -138,56 +138,8 @@ const ChatPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#FAF7F3' }}>
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b" style={{ borderColor: '#F0E4D3' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#D9A299' }}>
-                <span className="text-white font-bold">♥</span>
-              </div>
-              <span className="text-xl font-bold text-neutral-900">ColabSwipe</span>
-            </div>
-            
-            <nav className="flex space-x-8">
-              <button className="flex items-center space-x-2 px-3 py-2 rounded-lg font-medium text-neutral-600 hover:text-neutral-900">
-                <span>🔍</span>
-                <span>Découvrir</span>
-              </button>
-              <button className="flex items-center space-x-2 px-3 py-2 rounded-lg font-medium text-neutral-600 hover:text-neutral-900">
-                <span>♥</span>
-                <span>Matches</span>
-              </button>
-              <button 
-                className="flex items-center space-x-2 px-3 py-2 rounded-lg font-medium"
-                style={{ 
-                  backgroundColor: '#F0E4D3',
-                  color: '#D9A299'
-                }}
-              >
-                <span>💬</span>
-                <span>Messages</span>
-              </button>
-              <button className="flex items-center space-x-2 px-3 py-2 rounded-lg font-medium text-neutral-600 hover:text-neutral-900">
-                <span>📁</span>
-                <span>Projets</span>
-              </button>
-            </nav>
 
-            <div className="flex items-center space-x-4">
-              <button className="p-2 text-neutral-600 hover:text-neutral-900">
-                <span>🔔</span>
-              </button>
-              <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#DCC5B2' }}>
-                <span className="text-sm font-medium">M</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
+    <div className="min-h-screen pt-16" style={{ backgroundColor: '#FAF7F3' }}>
       <div className="h-[calc(100vh-4rem)] bg-white flex">
         {/* Conversations Sidebar */}
         <div className={`w-full md:w-80 bg-white border-r flex flex-col ${
