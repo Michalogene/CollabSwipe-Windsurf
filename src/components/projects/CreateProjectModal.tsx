@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ChevronLeft, ChevronRight, Upload, MapPin, Calendar, Users, Target, Briefcase } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Upload, Search, Plus, Minus } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { createProject } from '../../services/projects';
 import Button from '../common/Button';
@@ -23,19 +23,23 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
   const [projectData, setProjectData] = useState({
     title: '',
+    concept: '',
+    category: '',
+    status: '',
+    skills: [] as Array<{
+      name: string;
+      level: 'Débutant' | 'Intermédiaire' | 'Expert';
+      people: number;
+    }>,
     description: '',
-    type: '',
-    required_skills: [] as string[],
-    collaboration_type: '',
+    objectives: '',
     deadline: '',
-    location: '',
-    language: 'Français',
-    experience_level: '',
-    current_phase: '',
-    n_collaborators: 1
+    media: [] as string[]
   });
 
-  const PROJECT_TYPES = [
+  const [skillSearch, setSkillSearch] = useState('');
+
+  const CATEGORIES = [
     'Application Web',
     'Application Mobile',
     'Site Web',
@@ -48,24 +52,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     'Autre'
   ];
 
-  const COLLABORATION_TYPES = [
-    'Co-fondateur',
-    'Freelance rémunéré',
-    'Partenariat',
-    'Bénévolat',
-    'Échange de compétences',
-    'Stage/Alternance'
-  ];
-
-  const EXPERIENCE_LEVELS = [
-    'Débutant',
-    'Intermédiaire',
-    'Expérimenté',
-    'Expert',
-    'Peu importe'
-  ];
-
-  const PROJECT_PHASES = [
+  const STATUS_OPTIONS = [
     'Idée/Concept',
     'Planification',
     'Développement',
@@ -74,26 +61,42 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     'Croissance'
   ];
 
-  const SKILLS_OPTIONS = [
-    'JavaScript', 'React', 'Vue.js', 'Angular', 'Node.js', 'Python', 'PHP',
-    'UI Design', 'UX Design', 'Figma', 'Photoshop', 'Illustrator',
-    'Marketing', 'SEO', 'Copywriting', 'Réseaux Sociaux',
-    'Gestion de Projet', 'Business Development', 'Finance'
+  const AVAILABLE_SKILLS = [
+    'Node.js', 'React', 'UI/UX Design', 'JavaScript', 'Python', 'Vue.js', 
+    'Angular', 'PHP', 'Design Graphique', 'Marketing', 'SEO', 'Copywriting',
+    'Gestion de Projet', 'Business Development', 'Finance', 'Photoshop',
+    'Figma', 'Illustrator', 'WordPress', 'Shopify'
   ];
 
   const updateField = (field: string, value: any) => {
     setProjectData(prev => ({ ...prev, [field]: value }));
   };
 
-  const toggleSkill = (skill: string) => {
-    const newSkills = projectData.required_skills.includes(skill)
-      ? projectData.required_skills.filter(s => s !== skill)
-      : [...projectData.required_skills, skill];
-    updateField('required_skills', newSkills);
+  const addSkill = (skillName: string) => {
+    if (!projectData.skills.find(s => s.name === skillName)) {
+      const newSkill = {
+        name: skillName,
+        level: 'Débutant' as const,
+        people: 1
+      };
+      updateField('skills', [...projectData.skills, newSkill]);
+    }
+    setSkillSearch('');
+  };
+
+  const updateSkill = (index: number, field: string, value: any) => {
+    const updatedSkills = [...projectData.skills];
+    updatedSkills[index] = { ...updatedSkills[index], [field]: value };
+    updateField('skills', updatedSkills);
+  };
+
+  const removeSkill = (index: number) => {
+    const updatedSkills = projectData.skills.filter((_, i) => i !== index);
+    updateField('skills', updatedSkills);
   };
 
   const handleNext = () => {
-    if (currentStep < 3) {
+    if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     } else {
       handleSubmit();
@@ -116,11 +119,11 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       const result = await createProject({
         creator_id: user.id,
         title: projectData.title,
-        description: projectData.description,
-        required_skills: projectData.required_skills,
-        collaboration_type: projectData.collaboration_type,
+        description: `${projectData.concept}\n\nObjectifs:\n${projectData.objectives}`,
+        required_skills: projectData.skills.map(s => s.name),
+        collaboration_type: projectData.category,
         deadline: projectData.deadline || null,
-        media_urls: []
+        media_urls: projectData.media
       });
 
       if (result.error) {
@@ -144,31 +147,29 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     setCurrentStep(1);
     setProjectData({
       title: '',
+      concept: '',
+      category: '',
+      status: '',
+      skills: [],
       description: '',
-      type: '',
-      required_skills: [],
-      collaboration_type: '',
+      objectives: '',
       deadline: '',
-      location: '',
-      language: 'Français',
-      experience_level: '',
-      current_phase: '',
-      n_collaborators: 1
+      media: []
     });
     setError('');
+    setSkillSearch('');
   };
 
   const isStepValid = () => {
     switch (currentStep) {
       case 1:
-        return projectData.title && projectData.description && projectData.type;
+        return projectData.title && projectData.concept && projectData.category && projectData.status;
       case 2:
-        return projectData.required_skills.length > 0 && 
-               projectData.collaboration_type && 
-               projectData.experience_level && 
-               projectData.current_phase;
+        return projectData.skills.length > 0;
       case 3:
-        return true; // Étape optionnelle
+        return projectData.description && projectData.objectives;
+      case 4:
+        return true; // Media is optional
       default:
         return false;
     }
@@ -181,56 +182,69 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       case 1:
         return (
           <div className="space-y-6">
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold text-neutral-900 mb-2">
-                Informations Générales
-              </h3>
-              <p className="text-neutral-600">
-                Présentez votre projet en quelques mots
-              </p>
-            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Titre du projet
+                </label>
+                <input
+                  type="text"
+                  value={projectData.title}
+                  onChange={(e) => updateField('title', e.target.value)}
+                  placeholder="Ex: Application de mise en relation"
+                  className="w-full p-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  style={{ backgroundColor: '#F0E4D3', borderColor: '#DCC5B2' }}
+                />
+              </div>
 
-            <Input
-              label="Titre du projet *"
-              value={projectData.title}
-              onChange={(value) => updateField('title', value)}
-              placeholder="Ex: Application de gestion de tâches collaborative"
-              required
-            />
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Concept
+                </label>
+                <textarea
+                  value={projectData.concept}
+                  onChange={(e) => updateField('concept', e.target.value)}
+                  placeholder="Décrivez votre projet en quelques lignes..."
+                  rows={4}
+                  className="w-full p-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                  style={{ backgroundColor: '#F0E4D3', borderColor: '#DCC5B2' }}
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Description du projet *
-              </label>
-              <textarea
-                value={projectData.description}
-                onChange={(e) => updateField('description', e.target.value)}
-                placeholder="Décrivez votre projet, ses objectifs, et ce que vous souhaitez accomplir..."
-                className="w-full p-3 border-2 border-neutral-200 rounded-lg focus:border-primary-500 focus:ring-primary-500 focus:outline-none resize-none"
-                rows={4}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Type de projet *
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {PROJECT_TYPES.map(type => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => updateField('type', type)}
-                    className={`p-3 rounded-lg text-sm font-medium text-left transition-all duration-200 ${
-                      projectData.type === type
-                        ? 'bg-primary-50 text-primary-700 border-2 border-primary-200'
-                        : 'bg-neutral-50 text-neutral-700 border-2 border-transparent hover:bg-neutral-100'
-                    }`}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Catégorie
+                  </label>
+                  <select
+                    value={projectData.category}
+                    onChange={(e) => updateField('category', e.target.value)}
+                    className="w-full p-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    style={{ backgroundColor: '#F0E4D3', borderColor: '#DCC5B2' }}
                   >
-                    {type}
-                  </button>
-                ))}
+                    <option value="">Sélectionner une catégorie</option>
+                    {CATEGORIES.map(category => (
+                      <option key={category} value={category}>{category}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    État d'avancement
+                  </label>
+                  <select
+                    value={projectData.status}
+                    onChange={(e) => updateField('status', e.target.value)}
+                    className="w-full p-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    style={{ backgroundColor: '#F0E4D3', borderColor: '#DCC5B2' }}
+                  >
+                    <option value="">Sélectionner un état</option>
+                    {STATUS_OPTIONS.map(status => (
+                      <option key={status} value={status}>{status}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -239,116 +253,91 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       case 2:
         return (
           <div className="space-y-6">
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold text-neutral-900 mb-2">
-                Profil du Collaborateur
+            <div>
+              <h3 className="text-xl font-semibold text-neutral-900 mb-4">
+                De quelles compétences avez-vous besoin ?
               </h3>
-              <p className="text-neutral-600">
-                Définissez le profil idéal de votre collaborateur
-              </p>
-            </div>
+              
+              <div className="relative mb-6">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                <input
+                  type="text"
+                  value={skillSearch}
+                  onChange={(e) => setSkillSearch(e.target.value)}
+                  placeholder="Rechercher une compétence..."
+                  className="w-full pl-10 pr-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  style={{ backgroundColor: '#F0E4D3', borderColor: '#DCC5B2' }}
+                />
+                {skillSearch && (
+                  <div className="absolute top-full left-0 right-0 bg-white border border-neutral-200 rounded-lg mt-1 max-h-40 overflow-y-auto z-10">
+                    {AVAILABLE_SKILLS
+                      .filter(skill => skill.toLowerCase().includes(skillSearch.toLowerCase()))
+                      .map(skill => (
+                        <button
+                          key={skill}
+                          onClick={() => addSkill(skill)}
+                          className="w-full text-left px-4 py-2 hover:bg-neutral-50 transition-colors"
+                        >
+                          {skill}
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Compétences requises * (sélectionnez jusqu'à 5)
-              </label>
-              <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
-                {SKILLS_OPTIONS.map(skill => (
-                  <button
-                    key={skill}
-                    type="button"
-                    onClick={() => toggleSkill(skill)}
-                    disabled={projectData.required_skills.length >= 5 && !projectData.required_skills.includes(skill)}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
-                      projectData.required_skills.includes(skill)
-                        ? 'bg-primary-500 text-white'
-                        : projectData.required_skills.length >= 5
-                        ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed'
-                        : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
-                    }`}
-                  >
-                    {skill}
-                  </button>
+              <div className="space-y-4">
+                {projectData.skills.map((skill, index) => (
+                  <div key={index} className="p-4 border border-neutral-200 rounded-lg" style={{ backgroundColor: '#F0E4D3', borderColor: '#DCC5B2' }}>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-medium text-neutral-900">{skill.name}</h4>
+                      <button
+                        onClick={() => removeSkill(index)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex space-x-2">
+                        {['Débutant', 'Intermédiaire', 'Expert'].map(level => (
+                          <button
+                            key={level}
+                            onClick={() => updateSkill(index, 'level', level)}
+                            className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                              skill.level === level
+                                ? 'text-white'
+                                : 'text-neutral-600 border border-neutral-300'
+                            }`}
+                            style={{
+                              backgroundColor: skill.level === level ? '#D9A299' : 'transparent'
+                            }}
+                          >
+                            {level}
+                          </button>
+                        ))}
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-neutral-600">Personnes</span>
+                        <button
+                          onClick={() => updateSkill(index, 'people', Math.max(1, skill.people - 1))}
+                          className="w-6 h-6 rounded-full border border-neutral-300 flex items-center justify-center hover:bg-neutral-100"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <span className="w-8 text-center">{skill.people}</span>
+                        <button
+                          onClick={() => updateSkill(index, 'people', skill.people + 1)}
+                          className="w-6 h-6 rounded-full border border-neutral-300 flex items-center justify-center hover:bg-neutral-100"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
-              <p className="text-sm text-neutral-500 mt-2">
-                {projectData.required_skills.length}/5 compétences sélectionnées
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Type de collaboration *
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {COLLABORATION_TYPES.map(type => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => updateField('collaboration_type', type)}
-                    className={`p-3 rounded-lg text-sm font-medium text-left transition-all duration-200 ${
-                      projectData.collaboration_type === type
-                        ? 'bg-primary-50 text-primary-700 border-2 border-primary-200'
-                        : 'bg-neutral-50 text-neutral-700 border-2 border-transparent hover:bg-neutral-100'
-                    }`}
-                  >
-                    {type}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Niveau d'expérience *
-                </label>
-                <select
-                  value={projectData.experience_level}
-                  onChange={(e) => updateField('experience_level', e.target.value)}
-                  className="w-full p-3 border-2 border-neutral-200 rounded-lg focus:border-primary-500 focus:outline-none"
-                  required
-                >
-                  <option value="">Sélectionner...</option>
-                  {EXPERIENCE_LEVELS.map(level => (
-                    <option key={level} value={level}>{level}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Phase actuelle *
-                </label>
-                <select
-                  value={projectData.current_phase}
-                  onChange={(e) => updateField('current_phase', e.target.value)}
-                  className="w-full p-3 border-2 border-neutral-200 rounded-lg focus:border-primary-500 focus:outline-none"
-                  required
-                >
-                  <option value="">Sélectionner...</option>
-                  {PROJECT_PHASES.map(phase => (
-                    <option key={phase} value={phase}>{phase}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Nombre de collaborateurs recherchés
-              </label>
-              <select
-                value={projectData.n_collaborators}
-                onChange={(e) => updateField('n_collaborators', parseInt(e.target.value))}
-                className="w-full p-3 border-2 border-neutral-200 rounded-lg focus:border-primary-500 focus:outline-none"
-              >
-                {[1, 2, 3, 4, 5].map(num => (
-                  <option key={num} value={num}>
-                    {num} collaborateur{num > 1 ? 's' : ''}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
         );
@@ -356,57 +345,83 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       case 3:
         return (
           <div className="space-y-6">
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold text-neutral-900 mb-2">
-                Détails Supplémentaires
-              </h3>
-              <p className="text-neutral-600">
-                Informations optionnelles pour enrichir votre projet
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                label="Date limite (optionnel)"
-                type="date"
-                value={projectData.deadline}
-                onChange={(value) => updateField('deadline', value)}
-                icon={Calendar}
-              />
-
-              <Input
-                label="Localisation (optionnel)"
-                value={projectData.location}
-                onChange={(value) => updateField('location', value)}
-                placeholder="Paris, Remote, etc."
-                icon={MapPin}
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Description du projet
+              </label>
+              <textarea
+                value={projectData.description}
+                onChange={(e) => updateField('description', e.target.value)}
+                placeholder="Décrivez en détail votre projet, les technologies envisagées, le contexte, etc."
+                rows={4}
+                className="w-full p-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                style={{ backgroundColor: '#F0E4D3', borderColor: '#DCC5B2' }}
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Langue du projet
+                Objectifs
               </label>
-              <select
-                value={projectData.language}
-                onChange={(e) => updateField('language', e.target.value)}
-                className="w-full p-3 border-2 border-neutral-200 rounded-lg focus:border-primary-500 focus:outline-none"
-              >
-                <option value="Français">Français</option>
-                <option value="Anglais">Anglais</option>
-                <option value="Espagnol">Espagnol</option>
-                <option value="Autre">Autre</option>
-              </select>
+              <textarea
+                value={projectData.objectives}
+                onChange={(e) => updateField('objectives', e.target.value)}
+                placeholder="Listez les objectifs principaux et secondaires de votre projet. Par exemple :
+- Développer un MVP fonctionnel
+- Atteindre 1000 utilisateurs
+- Valider le concept sur le marché"
+                rows={6}
+                className="w-full p-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+                style={{ backgroundColor: '#F0E4D3', borderColor: '#DCC5B2' }}
+              />
             </div>
 
-            <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
-              <h4 className="font-semibold text-primary-800 mb-2">
-                🎉 Prêt à publier !
-              </h4>
-              <p className="text-primary-700 text-sm">
-                Votre projet sera immédiatement visible sur la page "Découvrir" 
-                et les utilisateurs pourront exprimer leur intérêt.
-              </p>
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Date limite
+              </label>
+              <input
+                type="date"
+                value={projectData.deadline}
+                onChange={(e) => updateField('deadline', e.target.value)}
+                className="w-full p-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                style={{ backgroundColor: '#F0E4D3', borderColor: '#DCC5B2' }}
+              />
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-4">
+                Média
+              </label>
+              
+              <div 
+                className="border-2 border-dashed border-neutral-300 rounded-lg p-8 text-center"
+                style={{ borderColor: '#DCC5B2' }}
+              >
+                <div className="flex flex-col items-center space-y-4">
+                  <div 
+                    className="w-16 h-16 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: '#F0E4D3' }}
+                  >
+                    <Upload className="w-8 h-8 text-neutral-400" />
+                  </div>
+                  <div>
+                    <p className="text-neutral-600 mb-2">Glissez-déposez vos fichiers ici</p>
+                    <p className="text-sm text-neutral-500">ou cliquez pour sélectionner</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="px-4 py-2 border border-neutral-300 rounded-lg text-neutral-600 hover:bg-neutral-50 transition-colors"
+                  >
+                    Parcourir les fichiers
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -417,79 +432,76 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div className="fixed inset-0 transition-opacity bg-neutral-500 bg-opacity-75" onClick={onClose} />
-
-        <div className="inline-block w-full max-w-2xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
+        <div className="inline-block w-full max-w-4xl my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-neutral-900">Créer un Projet</h2>
-              <p className="text-sm text-neutral-500">Étape {currentStep} sur 3</p>
+          <div className="px-8 py-6 border-b" style={{ borderColor: '#F0E4D3' }}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-neutral-900">Création de projet</h2>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-neutral-600">
-                Progression
-              </span>
-              <span className="text-sm text-neutral-500">
-                {Math.round((currentStep / 3) * 100)}%
-              </span>
-            </div>
-            <div className="w-full bg-neutral-200 rounded-full h-2">
+            
+            {/* Progress Bar */}
+            <div className="mt-4">
               <div 
-                className="bg-gradient-to-r from-primary-500 to-secondary-500 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${(currentStep / 3) * 100}%` }}
-              />
+                className="h-2 rounded-full"
+                style={{ backgroundColor: '#F0E4D3' }}
+              >
+                <div 
+                  className="h-2 rounded-full transition-all duration-300"
+                  style={{ 
+                    backgroundColor: '#D9A299',
+                    width: `${(currentStep / 4) * 100}%`
+                  }}
+                />
+              </div>
             </div>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            <div className="mx-8 mt-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
               {error}
             </div>
           )}
 
           {/* Step Content */}
-          <div className="mb-8">
+          <div className="px-8 py-6" style={{ backgroundColor: '#FAF7F3' }}>
             {renderStep()}
           </div>
 
           {/* Navigation */}
-          <div className="flex justify-between items-center pt-6 border-t border-neutral-200">
+          <div className="flex justify-between items-center px-8 py-6 border-t" style={{ borderColor: '#F0E4D3' }}>
             <button
               onClick={handlePrevious}
               disabled={currentStep === 1}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
                 currentStep === 1
-                  ? 'text-neutral-300 cursor-not-allowed'
-                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+                  ? 'text-neutral-400 cursor-not-allowed'
+                  : 'text-neutral-600 hover:bg-neutral-100'
               }`}
             >
-              <ChevronLeft className="w-5 h-5" />
-              <span>Précédent</span>
+              Précédent
             </button>
 
-            <Button
+            <button
               onClick={handleNext}
-              loading={loading && currentStep === 3}
-              disabled={!isStepValid()}
-              icon={currentStep === 3 ? Target : ChevronRight}
-              iconPosition="right"
+              disabled={!isStepValid() || loading}
+              className={`px-6 py-2 rounded-lg font-medium text-white transition-colors ${
+                !isStepValid() || loading
+                  ? 'cursor-not-allowed opacity-50'
+                  : 'hover:opacity-90'
+              }`}
+              style={{ backgroundColor: '#D9A299' }}
             >
-              {currentStep === 3 ? 'Publier le Projet' : 'Continuer'}
-            </Button>
+              {loading ? 'Création...' : currentStep === 4 ? 'Publier le projet' : 'Suivant'}
+            </button>
           </div>
         </div>
       </div>
