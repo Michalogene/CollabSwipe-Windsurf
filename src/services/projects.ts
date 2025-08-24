@@ -125,7 +125,7 @@ export const getDiscoverProjects = async (currentUserId: string, limit = 20) => 
       return [];
     }
     
-    console.log(`${data?.length || 0} projets trouvés pour la découverte`);
+    console.log(`${data?.length || 0} projets trouvés pour la découverte:`, data);
     return data || [];
   } catch (error) {
     console.error('Erreur:', error);
@@ -135,6 +135,8 @@ export const getDiscoverProjects = async (currentUserId: string, limit = 20) => 
 
 export const searchProjects = async (query: string, currentUserId: string) => {
   try {
+    console.log('Recherche projets avec query:', query, 'pour utilisateur:', currentUserId);
+    
     const { data, error } = await supabase
       .from('projects')
       .select(`
@@ -151,6 +153,7 @@ export const searchProjects = async (query: string, currentUserId: string) => {
       return [];
     }
     
+    console.log(`${data?.length || 0} projets trouvés pour la recherche:`, data);
     return data || [];
   } catch (error) {
     console.error('Erreur:', error);
