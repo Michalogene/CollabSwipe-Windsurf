@@ -154,96 +154,139 @@ const ProfileSetupPage: React.FC = () => {
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-neutral-900 mb-2">Parlons de vous</h2>
-              <p className="text-neutral-600">Commençons par les informations de base</p>
+              <h2 className="text-3xl font-bold text-neutral-900 mb-3">Parlons de vous</h2>
+              <p className="text-lg text-neutral-600">Commençons par les informations de base</p>
             </div>
 
             {/* Profile Image */}
             <div className="flex flex-col items-center space-y-4">
               <div className="relative">
-                <div className="w-24 h-24 bg-neutral-200 rounded-full flex items-center justify-center overflow-hidden">
+                <div 
+                  className="w-24 h-24 rounded-full flex items-center justify-center overflow-hidden"
+                  style={{ backgroundColor: '#F0E4D3' }}
+                >
                   {profileData.avatarUrl ? (
                     <img src={profileData.avatarUrl} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
-                    <Camera className="w-8 h-8 text-neutral-400" />
+                    <User className="w-12 h-12 text-neutral-400" />
                   )}
                 </div>
-                <button className="absolute -bottom-2 -right-2 w-8 h-8 bg-primary-500 hover:bg-primary-600 text-white rounded-full flex items-center justify-center transition-colors">
+                <button 
+                  className="absolute -bottom-2 -right-2 w-8 h-8 text-white rounded-full flex items-center justify-center transition-colors"
+                  style={{ backgroundColor: '#D9A299' }}
+                >
                   <Camera className="w-4 h-4" />
                 </button>
               </div>
-              <p className="text-sm text-neutral-500">Ajouter une photo de profil</p>
+              <p className="text-sm text-neutral-600">Ajouter une photo de profil</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                value={profileData.firstName}
-                onChange={(value) => updateProfileData('firstName', value)}
-                placeholder="Prénom"
-                icon={User}
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <input
+                    type="text"
+                    value={profileData.firstName}
+                    onChange={(e) => updateProfileData('firstName', e.target.value)}
+                    placeholder="Prénom"
+                    className="w-full px-4 py-4 rounded-xl border-0 text-neutral-900 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-offset-0"
+                    style={{ 
+                      backgroundColor: '#F0E4D3',
+                      focusRingColor: '#D9A299'
+                    }}
+                    required
+                  />
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    value={profileData.lastName}
+                    onChange={(e) => updateProfileData('lastName', e.target.value)}
+                    placeholder="Nom"
+                    className="w-full px-4 py-4 rounded-xl border-0 text-neutral-900 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-offset-0"
+                    style={{ 
+                      backgroundColor: '#F0E4D3',
+                      focusRingColor: '#D9A299'
+                    }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <input
+                type="text"
+                value={profileData.activity}
+                onChange={(e) => updateProfileData('activity', e.target.value)}
+                placeholder="Votre activité (ex: Designer freelance, Développeur React...)"
+                className="w-full px-4 py-4 rounded-xl border-0 text-neutral-900 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-offset-0"
+                style={{ 
+                  backgroundColor: '#F0E4D3',
+                  focusRingColor: '#D9A299'
+                }}
                 required
               />
-              <Input
-                value={profileData.lastName}
-                onChange={(value) => updateProfileData('lastName', value)}
-                placeholder="Nom"
-                icon={User}
+
+              <input
+                type="text"
+                value={profileData.location}
+                onChange={(e) => updateProfileData('location', e.target.value)}
+                placeholder="Localisation (ville, région...)"
+                className="w-full px-4 py-4 rounded-xl border-0 text-neutral-900 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-offset-0"
+                style={{ 
+                  backgroundColor: '#F0E4D3',
+                  focusRingColor: '#D9A299'
+                }}
                 required
               />
             </div>
-
-            <Input
-              value={profileData.activity}
-              onChange={(value) => updateProfileData('activity', value)}
-              placeholder="Votre activité (ex: Designer freelance, Développeur React...)"
-              icon={Briefcase}
-              required
-            />
-
-            <Input
-              value={profileData.location}
-              onChange={(value) => updateProfileData('location', value)}
-              placeholder="Localisation (ville, région...)"
-              icon={MapPin}
-              required
-            />
           </div>
         );
 
       case 2:
         return (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-neutral-900 mb-2">Vos compétences & expertises</h2>
-              <p className="text-neutral-600">Sélectionnez jusqu'à 10 compétences qui vous définissent le mieux</p>
+              <h2 className="text-3xl font-bold text-neutral-900 mb-3">Vos compétences & expertises</h2>
+              <p className="text-lg text-neutral-600">Sélectionnez jusqu'à 10 compétences qui vous définissent le mieux</p>
             </div>
 
-            <Input
-              value={skillSearch}
-              onChange={setSkillSearch}
-              placeholder="Rechercher une compétence..."
-              icon={Search}
-            />
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
+              <input
+                type="text"
+                value={skillSearch}
+                onChange={(e) => setSkillSearch(e.target.value)}
+                placeholder="Rechercher une compétence..."
+                className="w-full pl-12 pr-4 py-4 rounded-xl border-0 text-neutral-900 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-offset-0"
+                style={{ 
+                  backgroundColor: '#F0E4D3',
+                  focusRingColor: '#D9A299'
+                }}
+              />
+            </div>
 
-            <div className="max-h-64 overflow-y-auto space-y-4">
+            <div className="max-h-80 overflow-y-auto space-y-6">
               {filteredSkills.map(({ category, skills }) => (
                 <div key={category}>
-                  <h4 className="font-medium text-neutral-700 mb-2">{category}</h4>
-                  <div className="flex flex-wrap gap-2">
+                  <h4 className="font-semibold text-neutral-900 mb-4 text-lg">{category}</h4>
+                  <div className="flex flex-wrap gap-3">
                     {skills.map(skill => (
                       <button
                         key={skill}
                         onClick={() => toggleSkill(skill)}
                         disabled={profileData.skills.length >= 10 && !profileData.skills.includes(skill)}
-                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                           profileData.skills.includes(skill)
-                            ? 'bg-primary-500 text-white'
+                            ? 'text-white'
                             : profileData.skills.length >= 10
-                            ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed'
-                            : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                            ? 'text-neutral-400 cursor-not-allowed'
+                            : 'text-neutral-700 hover:opacity-80'
                         }`}
+                        style={{
+                          backgroundColor: profileData.skills.includes(skill) ? '#D9A299' : '#F0E4D3'
+                        }}
                       >
                         {skill}
                       </button>
@@ -253,7 +296,7 @@ const ProfileSetupPage: React.FC = () => {
               ))}
             </div>
 
-            <div className="text-center text-sm text-neutral-500">
+            <div className="text-center text-sm text-neutral-600">
               {profileData.skills.length}/10 compétences sélectionnées
             </div>
           </div>
@@ -261,26 +304,29 @@ const ProfileSetupPage: React.FC = () => {
 
       case 3:
         return (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-neutral-900 mb-2">Recherche de collaboration</h2>
-              <p className="text-neutral-600">Aidez-nous à vous connecter avec les bonnes personnes</p>
+              <h2 className="text-3xl font-bold text-neutral-900 mb-3">Recherche de collaboration</h2>
+              <p className="text-lg text-neutral-600">Aidez-nous à vous connecter avec les bonnes personnes</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-3">
+              <label className="block text-lg font-semibold text-neutral-900 mb-4">
                 Types de collaboration recherchés
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 {COLLABORATION_TYPES.map(type => (
                   <button
                     key={type}
                     onClick={() => toggleCollaborationType(type)}
-                    className={`p-3 rounded-lg text-sm font-medium text-left transition-all duration-200 ${
+                    className={`p-4 rounded-xl text-sm font-medium text-center transition-all duration-200 ${
                       profileData.collaborationTypes.includes(type)
-                        ? 'bg-primary-50 text-primary-700 border-2 border-primary-200'
-                        : 'bg-neutral-50 text-neutral-700 border-2 border-transparent hover:bg-neutral-100'
+                        ? 'text-white'
+                        : 'text-neutral-700 hover:opacity-80'
                     }`}
+                    style={{
+                      backgroundColor: profileData.collaborationTypes.includes(type) ? '#D9A299' : '#F0E4D3'
+                    }}
                   >
                     {type}
                   </button>
@@ -289,19 +335,22 @@ const ProfileSetupPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-3">
+              <label className="block text-lg font-semibold text-neutral-900 mb-4">
                 Disponibilité
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-3">
                 {['Temps plein', 'Temps partiel', 'Ponctuel'].map(option => (
                   <button
                     key={option}
                     onClick={() => updateProfileData('availability', option)}
-                    className={`p-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    className={`p-4 rounded-xl text-sm font-medium transition-all duration-200 ${
                       profileData.availability === option
-                        ? 'bg-primary-50 text-primary-700 border-2 border-primary-200'
-                        : 'bg-neutral-50 text-neutral-700 border-2 border-transparent hover:bg-neutral-100'
+                        ? 'text-white'
+                        : 'text-neutral-700 hover:opacity-80'
                     }`}
+                    style={{
+                      backgroundColor: profileData.availability === option ? '#D9A299' : '#F0E4D3'
+                    }}
                   >
                     {option}
                   </button>
@@ -310,15 +359,19 @@ const ProfileSetupPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
+              <label className="block text-lg font-semibold text-neutral-900 mb-4">
                 Domaines de projets qui vous intéressent
               </label>
               <textarea
                 value={profileData.projectInterests}
                 onChange={(e) => updateProfileData('projectInterests', e.target.value)}
                 placeholder="Ex: applications mobiles, contenu créatif, projets associatifs, startups tech..."
-                className="w-full p-3 border-2 border-neutral-200 rounded-lg focus:border-primary-500 focus:ring-primary-500 focus:outline-none resize-none"
-                rows={3}
+                className="w-full px-4 py-4 rounded-xl border-0 text-neutral-900 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-offset-0 resize-none"
+                style={{ 
+                  backgroundColor: '#F0E4D3',
+                  focusRingColor: '#D9A299'
+                }}
+                rows={4}
               />
             </div>
           </div>
@@ -326,59 +379,54 @@ const ProfileSetupPage: React.FC = () => {
 
       case 4:
         return (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-neutral-900 mb-2">Présentation & Portfolio</h2>
-              <p className="text-neutral-600">Dernière étape pour finaliser votre profil</p>
+              <h2 className="text-3xl font-bold text-neutral-900 mb-3">Présentation & Portfolio</h2>
+              <p className="text-lg text-neutral-600">Dernière étape pour finaliser votre profil</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
+              <label className="block text-lg font-semibold text-neutral-900 mb-4">
                 Parlez-vous ! (500 caractères max)
               </label>
               <textarea
                 value={profileData.bio}
                 onChange={(e) => updateProfileData('bio', e.target.value.substring(0, 500))}
                 placeholder="Vos passions, motivations, ce qui vous anime dans la collaboration..."
-                className="w-full p-3 border-2 border-neutral-200 rounded-lg focus:border-primary-500 focus:ring-primary-500 focus:outline-none resize-none"
-                rows={4}
+                className="w-full px-4 py-4 rounded-xl border-0 text-neutral-900 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-offset-0 resize-none"
+                style={{ 
+                  backgroundColor: '#F0E4D3',
+                  focusRingColor: '#D9A299'
+                }}
+                rows={6}
                 maxLength={500}
               />
-              <div className="text-right text-sm text-neutral-500 mt-1">
+              <div className="text-right text-sm text-neutral-500 mt-2">
                 {profileData.bio.length}/500 caractères
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-3">
+              <label className="block text-lg font-semibold text-neutral-900 mb-4">
                 Liens portfolio (optionnel)
               </label>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {['GitHub', 'LinkedIn', 'Behance', 'Site web'].map(platform => (
-                  <Input
+                  <input
                     key={platform}
+                    type="text"
                     value={profileData.portfolioLinks[platform] || ''}
-                    onChange={(value) => updateProfileData('portfolioLinks', {...profileData.portfolioLinks, [platform]: value})}
+                    onChange={(e) => updateProfileData('portfolioLinks', {...profileData.portfolioLinks, [platform]: e.target.value})}
                     placeholder={`Votre profil ${platform}`}
+                    className="w-full px-4 py-4 rounded-xl border-0 text-neutral-900 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-offset-0"
+                    style={{ 
+                      backgroundColor: '#F0E4D3',
+                      focusRingColor: '#D9A299'
+                    }}
                   />
                 ))}
               </div>
             </div>
-
-            {/* Bouton de test debug */}
-            <button 
-              onClick={() => {
-                console.log('🧪 TEST - État actuel profileData:', profileData);
-                console.log('🧪 TEST - User:', user);
-                // Test de sauvegarde immédiate
-                if (user) {
-                  saveProfileToSupabase(user, profileData);
-                }
-              }}
-              style={{ background: 'orange', color: 'white', padding: '10px', margin: '10px', borderRadius: '8px' }}
-            >
-              🧪 TEST SAUVEGARDE
-            </button>
           </div>
         );
 
@@ -388,26 +436,29 @@ const ProfileSetupPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-white py-8 px-4">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen py-8 px-4" style={{ backgroundColor: '#FAF7F3' }}>
+      <div className="max-w-4xl mx-auto">
         {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
+        <div className="mb-12">
+          <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-medium text-neutral-600">Étape {currentStep} sur 4</span>
             <span className="text-sm text-neutral-500">{Math.round((currentStep / 4) * 100)}%</span>
           </div>
-          <div className="w-full bg-neutral-200 rounded-full h-2">
+          <div className="w-full rounded-full h-3" style={{ backgroundColor: '#F0E4D3' }}>
             <div 
-              className="bg-gradient-to-r from-primary-500 to-secondary-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(currentStep / 4) * 100}%` }}
+              className="h-3 rounded-full transition-all duration-500"
+              style={{ 
+                backgroundColor: '#D9A299',
+                width: `${(currentStep / 4) * 100}%`
+              }}
             />
           </div>
         </div>
 
         {/* Content */}
-        <div className="bg-white rounded-2xl shadow-card p-8 animate-slide-in">
+        <div className="bg-white rounded-3xl shadow-lg p-12 animate-slide-in">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl mb-8">
               {error}
             </div>
           )}
@@ -415,33 +466,48 @@ const ProfileSetupPage: React.FC = () => {
           {renderStep()}
 
           {/* Navigation */}
-          <div className="flex justify-between items-center mt-8 pt-6 border-t border-neutral-200">
+          <div className="flex justify-between items-center mt-12 pt-8">
             <button
               onClick={handlePrevious}
               disabled={currentStep === 1}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+              className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-all duration-200 ${
                 currentStep === 1
                   ? 'text-neutral-300 cursor-not-allowed'
-                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+                  : 'text-neutral-600 hover:text-neutral-900'
               }`}
+              style={{
+                backgroundColor: currentStep === 1 ? 'transparent' : '#F0E4D3'
+              }}
             >
               <ChevronLeft className="w-5 h-5" />
               <span>Précédent</span>
             </button>
 
-            <Button
+            <button
               onClick={handleNext}
-              loading={loading && currentStep === 4}
               disabled={
+                loading ||
                 (currentStep === 1 && (!profileData.firstName || !profileData.lastName || !profileData.activity || !profileData.location)) ||
                 (currentStep === 2 && profileData.skills.length === 0) ||
                 (currentStep === 3 && (profileData.collaborationTypes.length === 0 || !profileData.availability))
               }
-              icon={currentStep === 4 ? undefined : ChevronRight}
-              iconPosition="right"
+              className={`flex items-center space-x-2 px-8 py-3 rounded-xl font-medium text-white transition-all duration-200 ${
+                loading ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'
+              }`}
+              style={{ backgroundColor: '#D9A299' }}
             >
-              {currentStep === 4 ? 'Terminer' : 'Continuer'}
-            </Button>
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Sauvegarde...</span>
+                </>
+              ) : (
+                <>
+                  <span>{currentStep === 4 ? 'Terminer' : 'Continuer'}</span>
+                  {currentStep !== 4 && <ChevronRight className="w-5 h-5" />}
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
