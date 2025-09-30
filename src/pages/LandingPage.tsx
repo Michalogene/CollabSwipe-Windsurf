@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Users, Lightbulb, Rocket, ArrowRight, CheckCircle, X, Star } from 'lucide-react';
 import Button from '../components/common/Button';
+import TestimonialsSection from '../components/ui/TestimonialsSection';
 
 const LandingPage: React.FC = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
@@ -170,66 +171,9 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Benefits Section */}
-      <section className="py-20 px-4" style={{ backgroundColor: '#F0E4D3' }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-4xl font-bold text-neutral-900 mb-6">
-                Pourquoi choisir ColabSwipe ?
-              </h2>
-              <p className="text-xl text-neutral-600 mb-8">
-                Rejoignez une communauté de créateurs passionnés et donnez vie à vos projets les plus ambitieux.
-              </p>
-              <div className="space-y-4">
-                {benefits.map((benefit, index) => (
-                  <div key={index} className="flex items-start space-x-3">
-                    <CheckCircle className="w-6 h-6 mt-0.5 flex-shrink-0" style={{ color: '#D9A299' }} />
-                    <span className="text-neutral-700">{benefit}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-8">
-                <Link to="/auth">
-                  <button 
-                    className="px-8 py-4 rounded-xl font-medium text-white transition-all duration-200 hover:opacity-90 flex items-center space-x-2"
-                    style={{ backgroundColor: '#D9A299' }}
-                  >
-                    <span>Rejoindre maintenant</span>
-                    <ArrowRight className="w-5 h-5" />
-                  </button>
-                </Link>
-              </div>
-            </div>
 
-            <div className="relative">
-              <div className="bg-white rounded-2xl shadow-lg p-6 border" style={{ borderColor: '#DCC5B2' }}>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-neutral-900">Nouveaux Matches</h3>
-                  <span className="px-2 py-1 rounded-full text-sm text-white" style={{ backgroundColor: '#D9A299' }}>3</span>
-                </div>
-                <div className="space-y-3">
-                  {matches.map((person, index) => (
-                    <div key={index} className="flex items-center space-x-3 p-3 rounded-lg" style={{ backgroundColor: '#FAF7F3' }}>
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#D9A299' }}>
-                        <span className="text-white font-semibold">{person.name[0]}</span>
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-neutral-900">{person.name}</p>
-                        <p className="text-sm text-neutral-600">{person.role}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium" style={{ color: '#D9A299' }}>{person.match}</p>
-                        <p className="text-xs text-neutral-500">match</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Dynamic Testimonials Section */}
+      <TestimonialsSection />
 
       {/* Pricing Section */}
       <section className="py-20 px-4">
