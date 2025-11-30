@@ -1,11 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
+declare global {
+  interface Window {
+    __SUPABASE?: { url?: string; anonKey?: string };
+  }
+}
 
-// Debug logs pour vérifier la configuration
-console.log('Supabase URL:', supabaseUrl);
-console.log('Supabase Key:', supabaseAnonKey ? 'Définie' : 'MANQUANTE');
+const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined) || window.__SUPABASE?.url;
+const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) || window.__SUPABASE?.anonKey;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    'Les variables VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY ne sont pas définies. Créez un fichier .env.local à la racine avec ces valeurs puis redémarrez le serveur Vite.'
+  );
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {

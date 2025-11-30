@@ -12,6 +12,13 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Runtime fallback for Supabase when .env.local is not available in preview
+      window.__SUPABASE = window.__SUPABASE || {
+        url: 'https://gyfshrcemyyxjjoqzarf.supabase.co',
+        anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5ZnNocmNlbXl5eGpqb3F6YXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEyMDgyMzMsImV4cCI6MjA2Njc4NDIzM30.XvGr5qLCnRSpU2iBOfYwH_9lXBSDvW_NRJj3BIvgrlU'
+      };
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
