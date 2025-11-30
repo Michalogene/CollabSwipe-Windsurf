@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Users, Lightbulb, Rocket, ArrowRight, CheckCircle, X, Star } from 'lucide-react';
-import Button from '../components/common/Button';
+import { Heart, Users, Lightbulb, Rocket, ArrowRight, CheckCircle, X, Star, Search, Menu, Compass } from 'lucide-react';
+import cloudBackground from '../assets/cloud.png';
+import FeaturesSection from '../components/common/FeaturesSection';
+import HowItWorksSection from '../components/common/HowItWorksSection';
 
 const LandingPage: React.FC = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
@@ -38,101 +40,165 @@ const LandingPage: React.FC = () => {
     { name: 'Thomas', role: 'Chef de projet', match: '94%' }
   ];
 
+  const navItems = ['Pricing', 'Enterprise', 'Careers', 'Blog'];
+  const heroFilters = [
+    { label: 'Découvrir', active: true },
+    { label: 'Matches', active: false },
+    { label: 'Messages', active: false },
+    { label: 'Projets', active: false }
+  ];
+  const heroTabs = ['Projets', 'Personnes'];
+  const placeholderCards = Array.from({ length: 6 });
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#FAF7F3' }}>
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b" style={{ backgroundColor: 'rgba(250, 247, 243, 0.9)', borderColor: '#F0E4D3' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#D9A299' }}>
-                <Heart className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-neutral-900">ColabSwipe</span>
-            </div>
-            <Link to="/auth">
-              <button 
-                className="px-6 py-2 rounded-lg font-medium text-white transition-all duration-200 hover:opacity-90"
-                style={{ backgroundColor: '#D9A299' }}
-              >
-                Se connecter
-              </button>
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-5xl md:text-6xl font-bold text-neutral-900 mb-6 animate-slide-in">
-              Trouvez Votre Prochain{' '}
-              <span style={{ color: '#D9A299' }}>
-                Collab'
-              </span>
-            </h1>
-            <p className="text-xl text-neutral-600 mb-8 animate-slide-in" style={{ animationDelay: '0.1s' }}>
-              Des projets pros aux passions créatives, connectez-vous avec qui vous inspire
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-in" style={{ animationDelay: '0.2s' }}>
-              <Link to="/auth">
-                <button 
-                  className="px-8 py-4 rounded-xl font-medium text-white transition-all duration-200 hover:opacity-90 flex items-center space-x-2"
-                  style={{ backgroundColor: '#D9A299' }}
+      <div
+        className="relative"
+        style={{
+          backgroundImage: `url(${cloudBackground})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        <div
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(180deg, rgba(26, 51, 97, 0.35) 0%, rgba(250, 247, 243, 0.85) 85%)',
+            pointerEvents: 'none'
+          }}
+        />
+        <div className="relative z-10 px-4">
+          {/* Header */}
+          <header className="max-w-7xl mx-auto py-8">
+            <div className="flex items-center gap-10 text-white drop-shadow-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-11 h-11 rounded-full bg-white/20 border border-white/40 flex items-center justify-center">
+                  <Compass className="w-6 h-6" />
+                </div>
+                <span
+                  className="text-2xl font-semibold tracking-wide"
+                  style={{ fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}
                 >
-                  <span>Commencer l'aventure</span>
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-              </Link>
-              <button 
-                className="px-8 py-4 rounded-xl font-medium transition-all duration-200 border-2 hover:opacity-80"
-                style={{ 
-                  borderColor: '#DCC5B2',
-                  color: '#D9A299',
-                  backgroundColor: 'transparent'
-                }}
+                  CollabSwipe
+                </span>
+              </div>
+              <nav
+                className="hidden md:flex items-center gap-6 text-sm font-bold uppercase tracking-wide text-white/90"
+                style={{ fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}
               >
-                Découvrir la plateforme
-              </button>
+                {navItems.map((item) => (
+                  <a key={item} href="#" className="hover:text-white transition-colors">
+                    {item}
+                  </a>
+                ))}
+              </nav>
             </div>
-          </div>
+          </header>
 
-          {/* Hero Visual - Profile Card */}
-          <div className="mt-16 relative animate-slide-in" style={{ animationDelay: '0.3s' }}>
-            <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md mx-auto border" style={{ borderColor: '#F0E4D3' }}>
-              <div className="flex items-center space-x-4 mb-6">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: '#D9A299' }}>
-                  <Users className="w-8 h-8 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-neutral-900">Sarah, Designer UX</h3>
-                  <p className="text-neutral-600">Recherche développeur React</p>
-                </div>
-              </div>
-              <div className="flex space-x-2 mb-4">
-                <span className="px-3 py-1 rounded-full text-sm" style={{ backgroundColor: '#F0E4D3', color: '#D9A299' }}>UI Design</span>
-                <span className="px-3 py-1 rounded-full text-sm" style={{ backgroundColor: '#F0E4D3', color: '#D9A299' }}>Figma</span>
-                <span className="px-3 py-1 rounded-full text-sm" style={{ backgroundColor: '#F0E4D3', color: '#D9A299' }}>Startup</span>
-              </div>
-              <p className="text-neutral-600 text-sm mb-6">
-                Passionnée par l'innovation, je cherche un développeur pour créer une app révolutionnaire...
+          {/* Hero Section */}
+          <section className="pt-8 pb-20">
+            <div className="max-w-4xl mx-auto text-center text-white drop-shadow-sm">
+              <h1
+                className="mt-4 text-4xl md:text-6xl lg:text-[4.5rem] font-semibold leading-tight uppercase tracking-wide"
+                style={{ fontFamily: '"Libre Caslon Text", Georgia, "Times New Roman", serif' }}
+              >
+                <span>#1 Tool To</span>
+                <br />
+                <span>Find A Team</span>
+              </h1>
+
+              <div className="mt-6 h-px w-24 bg-white/70 mx-auto" />
+              <p
+                className="mt-6 text-lg md:text-xl text-white/90"
+                style={{ fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}
+              >
+                Get access to projects made for you or find your team.
               </p>
-              <div className="flex justify-center space-x-4">
-                <button className="w-12 h-12 bg-red-100 hover:bg-red-200 rounded-full flex items-center justify-center transition-colors">
-                  <X className="w-6 h-6 text-red-500" />
-                </button>
-                <button className="w-12 h-12 bg-yellow-100 hover:bg-yellow-200 rounded-full flex items-center justify-center transition-colors">
-                  <Star className="w-6 h-6 text-yellow-500" />
-                </button>
-                <button className="w-12 h-12 bg-green-100 hover:bg-green-200 rounded-full flex items-center justify-center transition-colors">
-                  <Heart className="w-6 h-6 text-green-500" />
-                </button>
+              <div className="mt-8 flex justify-center">
+                <Link to="/auth">
+                  <button className="px-10 py-3 rounded-full font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 shadow-xl shadow-blue-900/40 hover:translate-y-0.5 transition-transform">
+                    Start for Free
+                  </button>
+                </Link>
               </div>
             </div>
-          </div>
+
+            {/* Mocked dashboard */}
+            <div className="mt-14 max-w-5xl mx-auto">
+              <div className="bg-white/20 border border-white/40 rounded-[32px] p-6 md:p-10 shadow-2xl backdrop-blur-xl">
+                <div className="flex flex-col lg:flex-row gap-8">
+                  <div className="lg:w-48 flex flex-col items-center lg:items-stretch text-white/90">
+                    <div className="w-16 h-16 rounded-2xl bg-white/30 border border-white/40 flex items-center justify-center mb-6">
+                      <Compass className="w-8 h-8" />
+                    </div>
+                    <div className="flex flex-col gap-3 w-full">
+                      {heroFilters.map((item) => (
+                        <button
+                          key={item.label}
+                          className={`w-full rounded-full py-2 px-4 text-sm font-semibold tracking-wide transition ${
+                            item.active ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/30' : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
+                        >
+                          {item.label.toUpperCase()}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="mt-6 flex items-center gap-3 text-xs uppercase tracking-[0.2em]">
+                      <span className="inline-flex h-3 w-3 rounded-full border border-white bg-blue-500 shadow-blue-900/50 shadow-inner" />
+                      Projets
+                    </div>
+                  </div>
+
+                  <div className="flex-1 space-y-6">
+                    <div className="bg-white/10 rounded-2xl border border-white/30 px-4 py-3 flex items-center justify-between">
+                      <div className="flex gap-3">
+                        {heroTabs.map((tab, index) => (
+                          <button
+                            key={tab}
+                            className={`px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wide transition ${
+                              index === 0 ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/30' : 'text-white/80 hover:text-white'
+                            }`}
+                          >
+                            {tab}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-3 text-white/80">
+                        <span className="p-2 rounded-full bg-white/10 border border-white/30">
+                          <Search className="w-4 h-4" />
+                        </span>
+                        <span className="p-2 rounded-full bg-white/10 border border-white/30">
+                          <Menu className="w-4 h-4" />
+                        </span>
+                      </div>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      {placeholderCards.map((_, index) => (
+                        <div
+                          key={index}
+                          className="h-28 rounded-2xl bg-white/30 border border-white/50 shadow-inner shadow-white/30 backdrop-blur-md"
+                        />
+                      ))}
+                    </div>
+                    <div className="flex justify-center gap-3 pt-4">
+                      {Array.from({ length: 5 }).map((_, index) => (
+                        <span
+                          key={index}
+                          className={`h-3 w-3 rounded-full border border-white ${index === 0 ? 'bg-blue-500 shadow-blue-900/40 shadow-lg' : 'bg-white/20'}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
-      </section>
+      </div>
+
+      <FeaturesSection />
+      <HowItWorksSection />
 
       {/* Features Section */}
       <section className="py-20 px-4">
