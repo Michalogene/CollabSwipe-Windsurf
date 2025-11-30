@@ -6,6 +6,7 @@ import FeaturesSection from '../components/common/FeaturesSection';
 import HowItWorksSection from '../components/common/HowItWorksSection';
 import ComparisonSection from '../components/common/ComparisonSection';
 import StatsSection from '../components/common/StatsSection';
+import FooterSection from '../components/common/FooterSection';
 
 const LandingPage: React.FC = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
@@ -203,7 +204,6 @@ const LandingPage: React.FC = () => {
       <HowItWorksSection />
       <ComparisonSection />
       <StatsSection />
-
       {/* Features Section */}
       <section className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
@@ -439,51 +439,7 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 px-4" style={{ backgroundColor: '#D9A299' }}>
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">
-            Prêt à transformer vos idées en réalité ?
-          </h2>
-          <p className="text-xl mb-8" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-            Rejoignez des milliers de créateurs qui collaborent déjà sur ColabSwipe
-          </p>
-          <Link to="/auth">
-            <button 
-              className="px-8 py-4 rounded-xl font-medium transition-all duration-200 hover:opacity-90 flex items-center space-x-2 mx-auto"
-              style={{ 
-                backgroundColor: 'white',
-                color: '#D9A299'
-              }}
-            >
-              <span>Créer mon compte gratuitement</span>
-              <ArrowRight className="w-5 h-5" />
-            </button>
-          </Link>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-12 px-4 bg-neutral-900">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#D9A299' }}>
-                <Heart className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-white">ColabSwipe</span>
-            </div>
-            <div className="flex items-center space-x-6 text-neutral-400">
-              <a href="#" className="hover:text-white transition-colors">À propos</a>
-              <a href="#" className="hover:text-white transition-colors">Confidentialité</a>
-              <a href="#" className="hover:text-white transition-colors">Support</a>
-            </div>
-          </div>
-          <div className="border-t border-neutral-800 mt-8 pt-8 text-center text-neutral-500">
-            <p>&copy; 2024 ColabSwipe. Tous droits réservés.</p>
-          </div>
-        </div>
-      </footer>
+      <FooterSection />
     </div>
   );
 };
