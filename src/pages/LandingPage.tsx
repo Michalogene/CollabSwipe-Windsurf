@@ -5,6 +5,7 @@ import cloudBackground from '../assets/cloud.png';
 import FeaturesSection from '../components/common/FeaturesSection';
 import HowItWorksSection from '../components/common/HowItWorksSection';
 import ComparisonSection from '../components/common/ComparisonSection';
+import StatsSection from '../components/common/StatsSection';
 
 const LandingPage: React.FC = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
@@ -201,6 +202,7 @@ const LandingPage: React.FC = () => {
       <FeaturesSection />
       <HowItWorksSection />
       <ComparisonSection />
+      <StatsSection />
 
       {/* Features Section */}
       <section className="py-20 px-4">
