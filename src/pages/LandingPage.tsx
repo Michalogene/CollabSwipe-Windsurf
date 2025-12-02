@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Users, Lightbulb, Rocket, ArrowRight, CheckCircle, X, Star, Search, Menu, Compass } from 'lucide-react';
+import { Search, Menu, Compass } from 'lucide-react';
 import cloudBackground from '../assets/cloud.png';
 import FeaturesSection from '../components/common/FeaturesSection';
 import HowItWorksSection from '../components/common/HowItWorksSection';
@@ -9,39 +9,6 @@ import StatsSection from '../components/common/StatsSection';
 import FooterSection from '../components/common/FooterSection';
 
 const LandingPage: React.FC = () => {
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
-
-  const features = [
-    {
-      icon: Users,
-      title: 'Échangez Compétences & Idées',
-      description: 'Apprenez, enseignez, créez ensemble dans un écosystème bienveillant'
-    },
-    {
-      icon: Heart,
-      title: 'Swipez. Matchez. Créez.',
-      description: "L'outil le plus simple pour transformer vos idées en réalité"
-    },
-    {
-      icon: Rocket,
-      title: 'Projets Pros & Passions',
-      description: 'De l\'entrepreneuriat aux hobbies créatifs, tous les projets ont leur place'
-    }
-  ];
-
-  const benefits = [
-    'Connectez-vous avec des profils vérifiés',
-    'Découvrez des collaborateurs compatibles',
-    'Échangez en temps réel via notre chat intégré',
-    'Gérez tous vos projets en un seul endroit',
-    'Accédez à une communauté bienveillante'
-  ];
-
-  const matches = [
-    { name: 'Marc', role: 'Développeur Full-stack', match: '92%' },
-    { name: 'Julie', role: 'Designer graphique', match: '87%' },
-    { name: 'Thomas', role: 'Chef de projet', match: '94%' }
-  ];
 
   const navItems = ['Pricing', 'Enterprise', 'Careers', 'Blog'];
   const heroFilters = [
@@ -50,8 +17,6 @@ const LandingPage: React.FC = () => {
     { label: 'Messages', active: false },
     { label: 'Projets', active: false }
   ];
-  const heroTabs = ['Projets', 'Personnes'];
-  const placeholderCards = Array.from({ length: 6 });
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#FAF7F3' }}>
@@ -156,16 +121,16 @@ const LandingPage: React.FC = () => {
                   <div className="flex-1 space-y-6">
                     <div className="bg-white/10 rounded-2xl border border-white/30 px-4 py-3 flex items-center justify-between">
                       <div className="flex gap-3">
-                        {heroTabs.map((tab, index) => (
-                          <button
-                            key={tab}
-                            className={`px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wide transition ${
-                              index === 0 ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/30' : 'text-white/80 hover:text-white'
-                            }`}
-                          >
-                            {tab}
-                          </button>
-                        ))}
+                        <button
+                          className="px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wide transition bg-blue-600 text-white shadow-lg shadow-blue-900/30"
+                        >
+                          Projets
+                        </button>
+                        <button
+                          className="px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wide transition text-white/80 hover:text-white"
+                        >
+                          Personnes
+                        </button>
                       </div>
                       <div className="flex items-center gap-3 text-white/80">
                         <span className="p-2 rounded-full bg-white/10 border border-white/30">
@@ -177,7 +142,7 @@ const LandingPage: React.FC = () => {
                       </div>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-4">
-                      {placeholderCards.map((_, index) => (
+                      {Array.from({ length: 6 }).map((_, index) => (
                         <div
                           key={index}
                           className="h-28 rounded-2xl bg-white/30 border border-white/50 shadow-inner shadow-white/30 backdrop-blur-md"
@@ -204,11 +169,6 @@ const LandingPage: React.FC = () => {
       <HowItWorksSection />
       <ComparisonSection />
       <StatsSection />
-            </div>
-          </div>
-        </div>
-      </section>
-
       <FooterSection />
     </div>
   );
