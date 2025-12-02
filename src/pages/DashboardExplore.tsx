@@ -6,7 +6,7 @@ import {
   MapPin,
   MessageSquare,
   Star,
-  Users2,
+  Users,
 } from 'lucide-react';
 
 type Mode = 'talents' | 'projects';
@@ -35,7 +35,7 @@ const talentTags = ['Remote', 'Dev', 'Design', 'Marketing', 'Senior Level'];
 const projectTags = ['Idea Stage', 'MVP', 'Funded', 'Equity', 'Co-founder needed'];
 
 const GradientHeader: React.FC<{ children?: React.ReactNode }> = ({ children }) => (
-  <div className="relative h-24 rounded-t-2xl bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500">
+  <div className="relative h-24 rounded-t-2xl bg-gradient-to-r from-blue-500 via-indigo-500 to-orange-400">
     {children}
   </div>
 );
@@ -77,7 +77,7 @@ const DashboardExplore: React.FC = () => {
   return (
     <div className="min-h-screen font-sans">
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-100 shadow-sm flex flex-col">
+      <aside className="fixed left-0 top-16 w-64 h-[calc(100vh-4rem)] bg-white border-r border-gray-100 shadow-sm flex flex-col">
         <div className="px-5 py-4">
           <div className="text-xl font-semibold">CollabSwipe</div>
         </div>
@@ -85,7 +85,7 @@ const DashboardExplore: React.FC = () => {
           <div className="text-xs text-gray-500 mb-2">Talent Mode</div>
           <div className="rounded-lg border border-gray-200 py-2 px-3 text-sm flex items-center justify-between">
             <span>Explore</span>
-            <Users2 className="h-4 w-4 text-gray-400" />
+            <Users className="h-4 w-4 text-gray-400" />
           </div>
         </div>
 
@@ -125,7 +125,7 @@ const DashboardExplore: React.FC = () => {
       </aside>
 
       {/* Main content */}
-      <main className="ml-64 min-h-screen bg-slate-50">
+      <main className="ml-64 min-h-[calc(100vh-4rem)] bg-slate-50">
         <div className="max-w-7xl mx-auto px-6 py-8">
           {/* Mode switcher */}
           <div className="flex justify-center">
