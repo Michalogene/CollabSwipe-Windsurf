@@ -66,11 +66,20 @@ function AppContent() {
               </ProtectedRoute>
             } 
           />
+          {/* Dashboard Explore - Sans Layout (a sa propre sidebar) */}
+          <Route 
+            path="/discover" 
+            element={
+              <ProtectedRoute requireProfile={true}>
+                <DashboardExplore />
+              </ProtectedRoute>
+            } 
+          />
+          {/* Autres routes protégées avec Layout */}
           <Route path="/*" element={
             <ProtectedRoute requireProfile={true}>
               <Layout>
                 <Routes>
-                  <Route path="/discover" element={<DashboardExplore />} />
                   <Route path="/matches" element={<MatchesPage />} />
                   <Route path="/messages" element={<ChatPage />} />
                   <Route path="/messages/:id" element={<ChatPage />} />
