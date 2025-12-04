@@ -9,6 +9,7 @@ import MatchesPage from './pages/MatchesPage';
 import ChatPage from './pages/ChatPage';
 import ProfilePage from './pages/ProfilePage';
 import ProjectsPage from './pages/ProjectsPage';
+import ProjectWorkspace from './pages/ProjectWorkspace';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import LoadingSpinner from './components/common/LoadingSpinner';
@@ -102,6 +103,15 @@ function AppContent() {
               </ProtectedRoute>
             } 
           />
+          {/* Project Workspace - Sans Layout (a sa propre sidebar) */}
+          <Route 
+            path="/projects" 
+            element={
+              <ProtectedRoute requireProfile={true}>
+                <ProjectWorkspace />
+              </ProtectedRoute>
+            } 
+          />
           {/* Autres routes protégées avec Layout */}
           <Route path="/*" element={
             <ProtectedRoute requireProfile={true}>
@@ -109,7 +119,6 @@ function AppContent() {
                 <Routes>
                   <Route path="/matches" element={<MatchesPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
-                  <Route path="/projects" element={<ProjectsPage />} />
                   <Route path="*" element={<Navigate to="/discover" />} />
                 </Routes>
               </Layout>
