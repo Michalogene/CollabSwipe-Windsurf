@@ -189,6 +189,32 @@ export const expressInterestInProject = async (projectId: string, userId: string
   }
 };
 
+export const getProjectById = async (projectId: string) => {
+  try {
+    console.log('Chargement projet par ID:', projectId);
+    
+    const { data, error } = await supabase
+      .from('projects')
+      .select(`
+        *,
+        creator:profiles(*)
+      `)
+      .eq('id', projectId)
+      .single();
+    
+    if (error) {
+      console.error('Erreur chargement projet:', error);
+      return { data: null, error };
+    }
+    
+    console.log('Projet trouvé:', data);
+    return { data, error: null };
+  } catch (error) {
+    console.error('Erreur:', error);
+    return { data: null, error };
+  }
+};
+
 export const getProjectInterests = async (projectId: string) => {
   try {
     const { data, error } = await supabase

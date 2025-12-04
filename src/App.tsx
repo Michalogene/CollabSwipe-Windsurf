@@ -13,6 +13,7 @@ import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import DashboardExplore from './pages/DashboardExplore';
+import ProjectDetails from './pages/ProjectDetails';
 
 function AppContent() {
   const { user, profile, loading } = useAuth();
@@ -75,14 +76,38 @@ function AppContent() {
               </ProtectedRoute>
             } 
           />
+          {/* Chat/Messages - Sans Layout (a sa propre sidebar) */}
+          <Route 
+            path="/messages" 
+            element={
+              <ProtectedRoute requireProfile={true}>
+                <ChatPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/messages/:id" 
+            element={
+              <ProtectedRoute requireProfile={true}>
+                <ChatPage />
+              </ProtectedRoute>
+            } 
+          />
+          {/* Project Details - Sans Layout (a sa propre sidebar) */}
+          <Route 
+            path="/project/:id" 
+            element={
+              <ProtectedRoute requireProfile={true}>
+                <ProjectDetails />
+              </ProtectedRoute>
+            } 
+          />
           {/* Autres routes protégées avec Layout */}
           <Route path="/*" element={
             <ProtectedRoute requireProfile={true}>
               <Layout>
                 <Routes>
                   <Route path="/matches" element={<MatchesPage />} />
-                  <Route path="/messages" element={<ChatPage />} />
-                  <Route path="/messages/:id" element={<ChatPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/projects" element={<ProjectsPage />} />
                   <Route path="*" element={<Navigate to="/discover" />} />
