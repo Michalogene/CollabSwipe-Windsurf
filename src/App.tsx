@@ -16,6 +16,7 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 import DashboardExplore from './pages/DashboardExplore';
 import ProjectDetails from './pages/ProjectDetails';
 import ProjectCanvas from './pages/ProjectCanvas';
+import FavoritesPage from './pages/FavoritesPage';
 
 function AppContent() {
   const { user, profile, loading } = useAuth();
@@ -119,6 +120,15 @@ function AppContent() {
             element={
               <ProtectedRoute requireProfile={true}>
                 <ProjectCanvas />
+              </ProtectedRoute>
+            } 
+          />
+          {/* Favorites - Sans Layout (a sa propre sidebar) */}
+          <Route 
+            path="/favorites" 
+            element={
+              <ProtectedRoute requireProfile={true}>
+                <FavoritesPage />
               </ProtectedRoute>
             } 
           />
