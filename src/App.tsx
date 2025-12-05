@@ -15,6 +15,7 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import DashboardExplore from './pages/DashboardExplore';
 import ProjectDetails from './pages/ProjectDetails';
+import ProjectCanvas from './pages/ProjectCanvas';
 
 function AppContent() {
   const { user, profile, loading } = useAuth();
@@ -109,6 +110,15 @@ function AppContent() {
             element={
               <ProtectedRoute requireProfile={true}>
                 <ProjectWorkspace />
+              </ProtectedRoute>
+            } 
+          />
+          {/* Project Canvas - Sans Layout (fullscreen canvas) */}
+          <Route 
+            path="/canvas/:id" 
+            element={
+              <ProtectedRoute requireProfile={true}>
+                <ProjectCanvas />
               </ProtectedRoute>
             } 
           />
