@@ -207,7 +207,10 @@ const MyProjectsList: React.FC = () => {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-4xl font-bold text-gray-900">My Projects</h1>
-            <button className="px-6 py-3 rounded-lg bg-blue-600 text-white font-medium shadow-sm hover:bg-blue-700 transition-colors">
+            <button
+              onClick={() => navigate('/projects/create')}
+              className="px-6 py-3 rounded-lg bg-blue-600 text-white font-medium shadow-sm hover:bg-blue-700 transition-colors"
+            >
               Create New Project
             </button>
           </div>

@@ -16,6 +16,7 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 import DashboardExplore from './pages/DashboardExplore';
 import ProjectDetails from './pages/ProjectDetails';
 import ProjectCanvas from './pages/ProjectCanvas';
+import CreateProjectWizard from './pages/CreateProjectWizard';
 import FavoritesPage from './pages/FavoritesPage';
 
 function AppContent() {
@@ -113,6 +114,14 @@ function AppContent() {
                 <MyProjectsList />
               </ProtectedRoute>
             } 
+          />
+          <Route
+            path="/projects/create"
+            element={
+              <ProtectedRoute requireProfile={true}>
+                <CreateProjectWizard />
+              </ProtectedRoute>
+            }
           />
           {/* Project Workspace */}
           <Route 
