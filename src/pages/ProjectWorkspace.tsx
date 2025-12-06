@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Settings,
@@ -14,24 +14,18 @@ import {
   Layout,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import TaskDetailModal from '../components/projects/TaskDetailModal';
+import AddTaskModal from '../components/projects/AddTaskModal';
+import { Task } from '../types/task';
 
 // Helper pour générer des avatars
 const avatar = (id: number) => `https://i.pravatar.cc/120?img=${id}`;
 
-interface Task {
-  id: string;
-  title: string;
-  tag: string;
-  assignee: {
-    avatar: string;
-    name: string;
-  };
-  isDragging?: boolean;
-}
-
 const ProjectWorkspace: React.FC = () => {
   const location = useLocation();
   const { profile } = useAuth();
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [showAddTask, setShowAddTask] = useState(false);
 
   // Données de démo
   const project = {
@@ -47,12 +41,39 @@ const ProjectWorkspace: React.FC = () => {
     { id: 4, avatar: avatar(23), name: 'Emily Davis' },
   ];
 
-  const tasks: Record<string, Task[]> = {
+  const initialTasks: Record<string, Task[]> = {
     todo: [
       {
         id: '1',
         title: 'Design Homepage',
         tag: 'Design',
+        priority: 'High',
+        dueLabel: 'Tomorrow',
+        description:
+          'Design Landing Page Hero is a connennet design and corporative design, web developments and context to cuts in it.',
+        subtasks: [
+          { label: 'Wireframes', done: false },
+          { label: 'Copywriting', done: false },
+          { label: 'Visual polish', done: false },
+        ],
+        attachments: [
+          { id: 'figma', type: 'figma', name: 'figma.fig' },
+          { id: 'pdf', type: 'pdf', name: 'brief.pdf' },
+        ],
+        comments: [
+          {
+            id: 'c1',
+            author: { name: 'Sarah Lee', avatar: avatar(64) },
+            message: 'Hey, are you design Landing Page hero',
+            time: '2h ago',
+          },
+          {
+            id: 'c2',
+            author: { name: 'Alex Chen', avatar: avatar(12) },
+            message: 'File dnoimentars',
+            time: '1h ago',
+          },
+        ],
         assignee: {
           avatar: avatar(45),
           name: 'Maria Rodriguez',
@@ -64,6 +85,9 @@ const ProjectWorkspace: React.FC = () => {
         id: '2',
         title: 'Develop API Endpoints',
         tag: 'Dev',
+        priority: 'Medium',
+        dueLabel: 'In 2 days',
+        description: 'Develop API endpoints for user and project entities.',
         assignee: {
           avatar: avatar(12),
           name: 'Alex Chen',
@@ -73,6 +97,9 @@ const ProjectWorkspace: React.FC = () => {
         id: '3',
         title: 'Refine UX Flow',
         tag: 'Design',
+        priority: 'High',
+        dueLabel: 'Today',
+        description: 'Refine the UX flow to reduce friction for onboarding.',
         assignee: {
           avatar: avatar(45),
           name: 'Maria Rodriguez',
@@ -85,12 +112,40 @@ const ProjectWorkspace: React.FC = () => {
         id: '4',
         title: 'Setup Database',
         tag: 'Dev',
+        priority: 'Low',
+        dueLabel: 'Next week',
+        description: 'Finish DB indexes and backup strategy.',
         assignee: {
           avatar: avatar(33),
           name: 'James Kim',
         },
       },
     ],
+  };
+
+  const [tasks, setTasks] = useState<Record<string, Task[]>>(initialTasks);
+
+  const members = useMemo(
+    () => [
+      { id: 1, avatar: avatar(45), name: 'Maria Rodriguez' },
+      { id: 2, avatar: avatar(12), name: 'Alex Chen' },
+      { id: 3, avatar: avatar(33), name: 'James Kim' },
+      { id: 4, avatar: avatar(23), name: 'Emily Davis' },
+      { id: 5, avatar: avatar(18), name: 'Chris Wong' },
+    ],
+    [],
+  );
+
+  const handleCreateTask = (newTaskData: Omit<Task, 'id' | 'tag'>) => {
+    const newTask: Task = {
+      ...newTaskData,
+      id: `${Date.now()}`,
+      tag: 'New',
+    };
+    setTasks((prev) => ({
+      ...prev,
+      todo: [newTask, ...prev.todo],
+    }));
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -272,13 +327,21 @@ const ProjectWorkspace: React.FC = () => {
             <div className="flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-gray-900">To Do</h3>
-                <button className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                <button
+                  className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  onClick={() => setShowAddTask(true)}
+                >
                   <Plus className="h-5 w-5 text-gray-500" />
                 </button>
               </div>
               <div className="space-y-4">
                 {tasks.todo.map((task) => (
-                  <TaskCard key={task.id} task={task} projectId={project.id} />
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    projectId={project.id}
+                    onClick={() => setSelectedTask(task)}
+                  />
                 ))}
               </div>
             </div>
@@ -287,13 +350,21 @@ const ProjectWorkspace: React.FC = () => {
             <div className="flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-gray-900">In Progress</h3>
-                <button className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                <button
+                  className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  onClick={() => setShowAddTask(true)}
+                >
                   <Plus className="h-5 w-5 text-gray-500" />
                 </button>
               </div>
               <div className="space-y-4">
                 {tasks.inProgress.map((task) => (
-                  <TaskCard key={task.id} task={task} projectId={project.id} />
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    projectId={project.id}
+                    onClick={() => setSelectedTask(task)}
+                  />
                 ))}
               </div>
             </div>
@@ -302,19 +373,38 @@ const ProjectWorkspace: React.FC = () => {
             <div className="flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-gray-900">Done</h3>
-                <button className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                <button
+                  className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  onClick={() => setShowAddTask(true)}
+                >
                   <Plus className="h-5 w-5 text-gray-500" />
                 </button>
               </div>
               <div className="space-y-4">
                 {tasks.done.map((task) => (
-                  <TaskCard key={task.id} task={task} projectId={project.id} />
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    projectId={project.id}
+                    onClick={() => setSelectedTask(task)}
+                  />
                 ))}
               </div>
             </div>
           </div>
         </div>
       </main>
+
+      {selectedTask && (
+        <TaskDetailModal task={selectedTask} onClose={() => setSelectedTask(null)} />
+      )}
+      {showAddTask && (
+        <AddTaskModal
+          onClose={() => setShowAddTask(false)}
+          onCreate={handleCreateTask}
+          members={members}
+        />
+      )}
     </div>
   );
 };
@@ -323,9 +413,10 @@ const ProjectWorkspace: React.FC = () => {
 interface TaskCardProps {
   task: Task;
   projectId: string;
+  onClick: () => void;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, projectId }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, projectId, onClick }) => {
   const navigate = useNavigate();
 
   const handleOpenCanvas = () => {
@@ -347,6 +438,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, projectId }) => {
             }
           : {}
       }
+      role="button"
+      onClick={onClick}
     >
       {/* Title */}
       <h4 className="font-medium text-gray-900 mb-3">{task.title}</h4>
@@ -361,14 +454,23 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, projectId }) => {
       {/* Footer */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <button className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+          <button
+            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+            onClick={(e) => e.stopPropagation()}
+          >
             <MessageCircle className="h-4 w-4 text-gray-500" />
           </button>
-          <button className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+          <button
+            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Paperclip className="h-4 w-4 text-gray-500" />
           </button>
           <button
-            onClick={handleOpenCanvas}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpenCanvas();
+            }}
             className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 hover:text-blue-600 transition-colors"
           >
             <Layout className="h-3 w-3" />
