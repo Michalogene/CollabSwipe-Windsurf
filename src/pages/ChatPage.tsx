@@ -17,150 +17,93 @@ import {
   Pencil,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-// import { getUserConversations, getConversationMessages, sendMessage, subscribeToMessages } from '../services/chat';
-
-interface Message {
-  id: string;
-  content: string;
-  sender_id: string;
-  created_at: string;
-  is_read: boolean;
-  sender?: any;
-}
-
-interface Conversation {
-  id: string;
-  match_id: string;
-  created_at: string;
-  updated_at: string;
-  otherUser: {
-    id: string;
-    first_name: string;
-    last_name: string;
-    activity?: string;
-    avatar_url?: string;
-  };
-  lastMessage?: string;
-  lastMessageTime?: string;
-  unreadCount?: number;
-}
+import {
+  getUserConversations,
+  getConversationMessages,
+  sendMessage,
+  subscribeToMessages,
+  Conversation,
+  Message
+} from '../services/chat';
 
 // Helper pour générer des avatars
 const avatar = (id: number) => `https://i.pravatar.cc/120?img=${id}`;
 
-// Données de démo pour les conversations
-const demoConversations: Conversation[] = [
-  {
-    id: '1',
-    match_id: 'match1',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    otherUser: {
-      id: 'alex',
-      first_name: 'Alex',
-      last_name: 'Chen',
-      activity: 'CTO',
-      avatar_url: avatar(12),
-    },
-    lastMessage: "Let's review the Figma link.",
-    lastMessageTime: '2m ago',
-    unreadCount: 0,
-  },
-  {
-    id: '2',
-    match_id: 'match2',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    otherUser: {
-      id: 'maria',
-      first_name: 'Maria',
-      last_name: 'Rodriguez',
-      activity: 'Designer',
-      avatar_url: avatar(45),
-    },
-    lastMessage: 'Prefeses your conversation, t...',
-    lastMessageTime: '5m ago',
-    unreadCount: 0,
-  },
-  {
-    id: '3',
-    match_id: 'match3',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    otherUser: {
-      id: 'james',
-      first_name: 'James',
-      last_name: 'Kim',
-      activity: 'Developer',
-      avatar_url: avatar(33),
-    },
-    lastMessage: "Let's review the Figma link in...",
-    lastMessageTime: '1h ago',
-    unreadCount: 0,
-  },
-];
-
-// Messages de démo pour Alex Chen
-const demoMessages = [
-  {
-    id: '1',
-    content: "Hi Sarah, checked the wireframes.",
-    sender_id: 'alex',
-    created_at: new Date().toISOString(),
-    is_read: true,
-  },
-  {
-    id: '2',
-    content: 'Thanks, Alex. The endpoints are ready on GitHub.',
-    sender_id: 'sarah',
-    created_at: new Date().toISOString(),
-    is_read: true,
-  },
-  {
-    id: '3',
-    content: 'Looking good! What about the API endpoints?',
-    sender_id: 'alex',
-    created_at: new Date().toISOString(),
-    is_read: true,
-  },
-  {
-    id: '4',
-    content: 'https://figma.com/tiow-ntGxPIRGI/',
-    sender_id: 'alex',
-    created_at: new Date().toISOString(),
-    is_read: true,
-    isLink: true,
-  },
-];
-
 const ChatPage: React.FC = () => {
-  const { id } = useParams();
+  const { id: initialConversationId } = useParams();
   const location = useLocation();
   const { user, profile } = useAuth();
+
   const [messageText, setMessageText] = useState('');
-  const [selectedConversation, setSelectedConversation] = useState<string | null>(id || '1');
-  const [conversations] = useState<Conversation[]>(demoConversations);
-  const [messages, setMessages] = useState<Message[]>(demoMessages);
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(initialConversationId || null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [sendingMessage, setSendingMessage] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const currentConversation = conversations.find((c) => c.id === selectedConversation);
-
+  // Load Conversations
   useEffect(() => {
     if (user) {
-      // loadConversations();
+      loadConversations();
     }
   }, [user]);
 
+  const loadConversations = async () => {
+    if (!user) return;
+    try {
+      const data = await getUserConversations(user.id);
+      setConversations(data);
+      if (!selectedConversation && data.length > 0 && !initialConversationId) {
+        setSelectedConversation(data[0].id);
+      }
+    } catch (error) {
+      console.error("Failed to load conversations", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load Messages & Subscribe when conversation selected
   useEffect(() => {
     if (selectedConversation) {
-      // loadMessages();
-      // Pour la démo, on utilise les messages statiques
+      loadMessages(selectedConversation);
+
+      // Subscribe to real-time messages
+      const subscription = subscribeToMessages(selectedConversation, (payload) => {
+        // chat.ts realtime payload processing might differ
+        const newMsg = payload.new as Message;
+        // We might need to fetch sender info if not included, but for now simple append
+        setMessages(prev => [...prev, newMsg]);
+
+        // Update conversation list last message
+        setConversations(prev => prev.map(c => {
+          if (c.id === selectedConversation) {
+            return {
+              ...c,
+              lastMessage: newMsg.content,
+              lastMessageTime: newMsg.created_at
+            };
+          }
+          return c;
+        }).sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()));
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
     }
   }, [selectedConversation]);
 
+  const loadMessages = async (convId: string) => {
+    const msgs = await getConversationMessages(convId);
+    setMessages(msgs);
+  };
+
+  // Scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -172,22 +115,12 @@ const ChatPage: React.FC = () => {
     const tempMessage = messageText;
     setMessageText('');
 
-    // Pour la démo, on ajoute directement le message
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      content: tempMessage,
-      sender_id: user.id,
-      created_at: new Date().toISOString(),
-      is_read: false,
-    };
-    setMessages((prev) => [...prev, newMessage]);
-
     try {
-      // const result = await sendMessage(selectedConversation, user.id, tempMessage);
-      // if (result.error) {
-      //   console.error('Erreur envoi message:', result.error);
-      //   setMessageText(tempMessage);
-      // }
+      const { error } = await sendMessage(selectedConversation, user.id, tempMessage);
+      if (error) {
+        console.error('Erreur envoi message:', error);
+        setMessageText(tempMessage); // Restore text on error
+      }
     } catch (error) {
       console.error('Erreur:', error);
       setMessageText(tempMessage);
@@ -205,12 +138,14 @@ const ChatPage: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const filteredConversations = conversations.filter((conv) =>
-    `${conv.otherUser.first_name} ${conv.otherUser.last_name}`
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase()) ||
-    conv.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter conversations
+  const filteredConversations = conversations.filter((conv) => {
+    const fullName = conv.otherUser ? `${conv.otherUser.first_name} ${conv.otherUser.last_name}`.toLowerCase() : '';
+    return fullName.includes(searchQuery.toLowerCase());
+  });
+
+  const currentConversationData = conversations.find((c) => c.id === selectedConversation);
+  const otherUser = currentConversationData?.otherUser;
 
   return (
     <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
@@ -243,11 +178,10 @@ const ChatPage: React.FC = () => {
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
           <Link
             to="/discover"
-            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
-              isActive('/discover')
-                ? 'bg-blue-50 text-blue-600'
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
+            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${isActive('/discover')
+              ? 'bg-blue-50 text-blue-600'
+              : 'text-gray-700 hover:bg-gray-50'
+              }`}
           >
             <Compass className="h-4 w-4" />
             <span>Explore</span>
@@ -255,11 +189,10 @@ const ChatPage: React.FC = () => {
 
           <Link
             to="/messages"
-            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all relative ${
-              isActive('/messages')
-                ? 'bg-blue-50 text-blue-600'
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
+            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all relative ${isActive('/messages')
+              ? 'bg-blue-50 text-blue-600'
+              : 'text-gray-700 hover:bg-gray-50'
+              }`}
           >
             <MessageSquare className="h-4 w-4" />
             <span>Messages</span>
@@ -287,7 +220,7 @@ const ChatPage: React.FC = () => {
         <div className="border-t border-gray-100 px-4 py-4">
           <div className="flex items-center gap-3">
             <img
-              src={avatar(64)}
+              src={profile?.avatar_url || avatar(64)}
               alt="Profile"
               className="h-9 w-9 rounded-full ring-2 ring-gray-100"
             />
@@ -295,9 +228,9 @@ const ChatPage: React.FC = () => {
               <div className="text-sm font-medium text-gray-900 truncate">
                 {profile?.first_name && profile?.last_name
                   ? `${profile.first_name} ${profile.last_name}`
-                  : 'Sarah Lee'}
+                  : 'User'}
               </div>
-              <div className="text-xs text-gray-500 truncate">Product Lead</div>
+              <div className="text-xs text-gray-500 truncate">{profile?.activity || 'Member'}</div>
             </div>
             <Link
               to="/profile"
@@ -330,6 +263,7 @@ const ChatPage: React.FC = () => {
                     />
                   </div>
                 </div>
+                {/* Compose Button - could open a modal to select a match? */}
                 <button className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors">
                   <Pencil className="h-4 w-4" />
                   <span>Compose</span>
@@ -340,31 +274,35 @@ const ChatPage: React.FC = () => {
               <div className="flex-1 overflow-y-auto">
                 {filteredConversations.map((conversation) => {
                   const isSelected = selectedConversation === conversation.id;
+                  const other = conversation.otherUser || { first_name: 'Unknown', last_name: '' };
+
                   return (
                     <div
                       key={conversation.id}
                       onClick={() => setSelectedConversation(conversation.id)}
-                      className={`px-4 py-3 cursor-pointer transition-colors ${
-                        isSelected ? 'bg-gray-50' : 'hover:bg-gray-50/50'
-                      }`}
+                      className={`px-4 py-3 cursor-pointer transition-colors ${isSelected ? 'bg-gray-50' : 'hover:bg-gray-50/50'
+                        }`}
                     >
                       <div className="flex items-start gap-3">
                         <img
-                          src={conversation.otherUser.avatar_url || avatar(12)}
-                          alt={conversation.otherUser.first_name}
+                          src={other.avatar_url || avatar(12)}
+                          alt={other.first_name}
                           className="h-12 w-12 rounded-full flex-shrink-0"
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
                             <span className="font-semibold text-gray-900 text-sm">
-                              {conversation.otherUser.first_name} {conversation.otherUser.last_name}
+                              {other.first_name} {other.last_name}
                             </span>
+                            {conversation.lastMessageTime && (
+                              <span className="text-xs text-gray-400">
+                                {new Date(conversation.lastMessageTime).toLocaleDateString()}
+                              </span>
+                            )}
                           </div>
-                          <div className="text-xs text-gray-500 mb-1">
-                            ({conversation.otherUser.activity})
-                          </div>
+
                           <p className="text-sm text-gray-600 truncate">
-                            {conversation.lastMessage}
+                            {conversation.lastMessage || 'No messages yet'}
                           </p>
                         </div>
                       </div>
@@ -376,21 +314,21 @@ const ChatPage: React.FC = () => {
 
             {/* Right Panel - Active Chat (65%) */}
             <div className="flex-1 flex flex-col">
-              {currentConversation ? (
+              {otherUser ? (
                 <>
                   {/* Chat Header */}
                   <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <img
-                        src={currentConversation.otherUser.avatar_url || avatar(12)}
-                        alt={currentConversation.otherUser.first_name}
+                        src={otherUser.avatar_url || avatar(12)}
+                        alt={otherUser.first_name}
                         className="h-10 w-10 rounded-full"
                       />
                       <div>
                         <div className="font-semibold text-gray-900">
-                          {currentConversation.otherUser.first_name}{' '}
-                          {currentConversation.otherUser.last_name} - {currentConversation.otherUser.activity}
+                          {otherUser.first_name} {otherUser.last_name}
                         </div>
+                        <div className="text-xs text-gray-500">{otherUser.activity || 'User'}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -412,38 +350,25 @@ const ChatPage: React.FC = () => {
                     className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50"
                   >
                     {messages.map((message) => {
-                      const isMe = message.sender_id === user?.id || message.sender_id === 'sarah';
-                      const isLink = (message as any).isLink;
+                      const isMe = message.sender_id === user?.id;
 
-                      if (isLink) {
-                        // Link Preview Card (Incoming message style)
-                        return (
-                          <div key={message.id} className="flex justify-start">
-                            <div className="max-w-md bg-gray-100 rounded-xl p-3 flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
-                                <span className="text-white font-bold text-sm">F</span>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm text-gray-900 truncate font-medium">
-                                  {message.content}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      }
 
                       return (
                         <div
                           key={message.id}
                           className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
                         >
+                          {!isMe && (
+                            <img
+                              src={message.sender?.avatar_url || otherUser.avatar_url || avatar(10)}
+                              className="w-8 h-8 rounded-full mr-2 self-end mb-1"
+                            />
+                          )}
                           <div
-                            className={`max-w-md px-4 py-2.5 rounded-2xl ${
-                              isMe
-                                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                                : 'bg-gray-100 text-gray-900'
-                            }`}
+                            className={`max-w-md px-4 py-2.5 rounded-2xl ${isMe
+                              ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                              : 'bg-gray-100 text-gray-900'
+                              }`}
                           >
                             <p className="text-sm leading-relaxed">{message.content}</p>
                           </div>
@@ -473,11 +398,10 @@ const ChatPage: React.FC = () => {
                       <button
                         onClick={handleSendMessage}
                         disabled={!messageText.trim() || sendingMessage}
-                        className={`p-2 rounded-lg transition-colors ${
-                          messageText.trim() && !sendingMessage
-                            ? 'bg-blue-600 text-white hover:bg-blue-700'
-                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                        }`}
+                        className={`p-2 rounded-lg transition-colors ${messageText.trim() && !sendingMessage
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          }`}
                       >
                         <Send className="h-5 w-5" />
                       </button>
@@ -488,7 +412,9 @@ const ChatPage: React.FC = () => {
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-center">
                     <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">Sélectionnez une conversation</p>
+                    <p className="text-gray-500">
+                      {loading ? 'Loading conversations...' : 'Select a conversation to start chatting'}
+                    </p>
                   </div>
                 </div>
               )}

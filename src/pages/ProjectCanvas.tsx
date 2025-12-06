@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   Share2,
@@ -104,9 +104,8 @@ const ProjectCanvas: React.FC = () => {
   });
   const [isPanning, setIsPanning] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
-  const location = useLocation();
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  useAuth(); // Keep context active
 
   const teamMembers = [
     { id: 1, avatar: avatar(12), name: 'Alex' },
@@ -152,7 +151,7 @@ const ProjectCanvas: React.FC = () => {
       const target = e.target as HTMLElement;
       const isNode = target.closest('.canvas-node');
       const isChatCard = target.closest('.chat-card');
-      
+
       // Ne pas panning si on double-clique sur un nœud ou le chat
       if (isNode || isChatCard) {
         return;
@@ -193,7 +192,7 @@ const ProjectCanvas: React.FC = () => {
         if (nodeElement) {
           const nodeId = nodeElement.dataset.nodeId;
           const handle = target.dataset.handle as 'nw' | 'ne' | 'sw' | 'se';
-          const rect = nodeElement.getBoundingClientRect();
+          // getBoundingClientRect available if needed for future calculations
           setDragState({
             isDragging: true,
             startX: e.clientX,
@@ -389,7 +388,7 @@ const ProjectCanvas: React.FC = () => {
 
       {/* Header - Floating Top Bar */}
       <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-white rounded-xl shadow-2xl border border-gray-100 px-6 py-3 flex items-center justify-between min-w-[800px]">
-        <button 
+        <button
           onClick={() => navigate('/projects')}
           className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
         >
@@ -533,11 +532,10 @@ const ToolButton: React.FC<ToolButtonProps> = ({
   return (
     <button
       onClick={onClick}
-      className={`w-full p-3 rounded-lg transition-all flex flex-col items-center gap-1 ${
-        active || highlight
+      className={`w-full p-3 rounded-lg transition-all flex flex-col items-center gap-1 ${active || highlight
           ? 'bg-gray-100 text-gray-900'
           : 'text-gray-600 hover:bg-gray-50'
-      } ${highlight ? 'bg-yellow-100' : ''}`}
+        } ${highlight ? 'bg-yellow-100' : ''}`}
     >
       <Icon className="h-5 w-5" />
       <span className="text-xs font-medium">{label}</span>
@@ -581,11 +579,10 @@ const CanvasNode: React.FC<CanvasNodeProps> = ({
       onClick={(e) => onNodeClick(e, node.id)}
     >
       <div
-        className={`relative w-full h-full bg-white rounded-lg shadow-lg overflow-visible ${
-          isSelected && activeTool === 'select'
+        className={`relative w-full h-full bg-white rounded-lg shadow-lg overflow-visible ${isSelected && activeTool === 'select'
             ? 'ring-2 ring-blue-500 cursor-move'
             : 'cursor-pointer'
-        }`}
+          }`}
       >
         {/* Resize Handles */}
         {isSelected && activeTool === 'select' && (
@@ -614,8 +611,8 @@ const CanvasNode: React.FC<CanvasNodeProps> = ({
           className="chat-button absolute top-2 right-2 z-30 p-1.5 rounded-lg bg-white/90 hover:bg-white shadow-md transition-colors"
           onClick={(e) => onChatClick(e, node.id)}
         >
-            <div className="relative">
-              <MessageCircle className="h-5 w-5 text-gray-600" />
+          <div className="relative">
+            <MessageCircle className="h-5 w-5 text-gray-600" />
             {node.comments && (
               <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">
                 {node.comments}
@@ -753,7 +750,7 @@ interface ChatCardProps {
   onClose: () => void;
 }
 
-const ChatCard: React.FC<ChatCardProps> = ({ nodeId, comments, onClose }) => {
+const ChatCard: React.FC<ChatCardProps> = ({ comments, onClose }) => {
   const [commentText, setCommentText] = useState('');
 
   const handleSendComment = () => {

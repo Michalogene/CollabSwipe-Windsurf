@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import {
   ArrowLeft,
   Users,
   MapPin,
-  Banknote,
-  Signal,
+  Clock,
+  Calendar,
   Settings,
   ChevronDown,
   Compass,
@@ -20,16 +20,9 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 // Helper pour générer des avatars
 const avatar = (id: number) => `https://i.pravatar.cc/120?img=${id}`;
 
-interface Founder {
-  name: string;
-  role: string;
-  avatar: string;
-}
-
 const ProjectDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
-  const navigate = useNavigate();
   const { profile } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
@@ -71,26 +64,26 @@ const ProjectDetails: React.FC = () => {
   // Données formatées pour l'affichage
   const projectData = project
     ? {
-        id: project.id,
-        name: project.title,
-        tagline: project.description?.substring(0, 50) + '...' || 'Innovative project',
-        logo: project.title?.[0] || 'P',
-        equity: project.collaboration_type || '5% Equity',
-        location: 'Remote-First', // À adapter selon les données réelles
-        salary: '$80k Salary', // À adapter selon les données réelles
-        stage: project.collaboration_type || 'Pre-Seed',
-        mission: project.description || 'No description available.',
-        techStack: project.required_skills || [],
-        founders: project.creator
-          ? [
-              {
-                name: `${project.creator.first_name} ${project.creator.last_name}`,
-                role: project.creator.activity || 'Founder',
-                avatar: project.creator.avatar_url || avatar(12),
-              },
-            ]
-          : [],
-      }
+      id: project.id,
+      name: project.title,
+      tagline: project.description?.substring(0, 50) + '...' || 'Innovative project',
+      logo: project.title?.[0] || 'P',
+      people: `Core Team: ${project.members_count || 1} Person${(project.members_count || 1) > 1 ? 's' : ''}`,
+      location: 'Remote-First', // À adapter selon les données réelles
+      time: '~10h / week', // Indicateur d'Investissement temps
+      published: `Published: ${new Date(project.created_at).toLocaleDateString()}`,
+      mission: project.description || 'No description available.',
+      techStack: project.required_skills || [],
+      founders: project.creator
+        ? [
+          {
+            name: `${project.creator.first_name} ${project.creator.last_name}`,
+            role: project.creator.activity || 'Founder',
+            avatar: project.creator.avatar_url || avatar(12),
+          },
+        ]
+        : [],
+    }
     : null;
 
   if (loading) {
@@ -154,11 +147,10 @@ const ProjectDetails: React.FC = () => {
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
           <Link
             to="/discover"
-            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
-              isActive('/discover')
-                ? 'bg-blue-50 text-blue-600'
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
+            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${isActive('/discover')
+              ? 'bg-blue-50 text-blue-600'
+              : 'text-gray-700 hover:bg-gray-50'
+              }`}
           >
             <Compass className="h-4 w-4" />
             <span>Explore</span>
@@ -257,7 +249,7 @@ const ProjectDetails: React.FC = () => {
                   <Users className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold text-gray-900">{projectData.equity}</div>
+                  <div className="text-sm font-semibold text-gray-900">{projectData.people}</div>
                 </div>
               </div>
               <div className="flex items-center gap-3 px-6 flex-1">
@@ -270,18 +262,18 @@ const ProjectDetails: React.FC = () => {
               </div>
               <div className="flex items-center gap-3 px-6 flex-1">
                 <div className="w-10 h-10 rounded-lg bg-yellow-50 flex items-center justify-center">
-                  <Banknote className="h-5 w-5 text-yellow-600" />
+                  <Clock className="h-5 w-5 text-yellow-600" />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold text-gray-900">{projectData.salary}</div>
+                  <div className="text-sm font-semibold text-gray-900">{projectData.time}</div>
                 </div>
               </div>
               <div className="flex items-center gap-3 px-6 flex-1">
                 <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
-                  <Signal className="h-5 w-5 text-purple-600" />
+                  <Calendar className="h-5 w-5 text-purple-600" />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold text-gray-900">{projectData.stage}</div>
+                  <div className="text-sm font-semibold text-gray-900">{projectData.published}</div>
                 </div>
               </div>
             </div>

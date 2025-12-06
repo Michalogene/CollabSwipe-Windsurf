@@ -1,13 +1,15 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   AtSign,
   CheckSquare,
   Clock,
-  Paperclip,
   Send,
   X,
+  Loader2,
 } from 'lucide-react';
-import { Task, TaskAttachment, TaskComment, TaskSubtask } from '../../types/task';
+import { Task, TaskAttachment, TaskSubtask } from '../../types/task';
+import { useAuth } from '../../contexts/AuthContext';
+import { getTaskComments, addTaskComment, subscribeToTaskComments, TaskComment } from '../../services/taskComments';
 
 type TaskDetailModalProps = {
   task: Task;
@@ -15,6 +17,68 @@ type TaskDetailModalProps = {
 };
 
 const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, onClose }) => {
+  const { user, profile } = useAuth();
+  const [comments, setComments] = useState<TaskComment[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
+  const commentsEndRef = useRef<HTMLDivElement>(null);
+
+  // Fetch comments on mount
+  useEffect(() => {
+    const loadComments = async () => {
+      setIsLoading(true);
+      const data = await getTaskComments(task.id);
+      setComments(data);
+      setIsLoading(false);
+    };
+    loadComments();
+  }, [task.id]);
+
+  // Subscribe to real-time updates
+  useEffect(() => {
+    const unsubscribe = subscribeToTaskComments(task.id, (newCommentData) => {
+      setComments((prev) => {
+        // Avoid duplicates
+        if (prev.some(c => c.id === newCommentData.id)) return prev;
+        return [...prev, newCommentData];
+      });
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [task.id]);
+
+  // Scroll to bottom when new comments arrive
+  useEffect(() => {
+    commentsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [comments]);
+
+  const handleSendComment = async () => {
+    if (!newComment.trim() || !user) return;
+
+    setIsSending(true);
+    const { data, error } = await addTaskComment(task.id, user.id, newComment.trim());
+
+    if (!error && data) {
+      // Optimistically add if real-time doesn't catch it fast enough
+      setComments((prev) => {
+        if (prev.some(c => c.id === data.id)) return prev;
+        return [...prev, data];
+      });
+      setNewComment('');
+    }
+    setIsSending(false);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendComment();
+    }
+  };
+
   const mockSubtasks: TaskSubtask[] =
     task.subtasks || [
       { label: 'Wireframes', done: false },
@@ -28,22 +92,6 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, onClose }) => {
       { id: 'pdf', type: 'pdf', name: 'brief.pdf' },
     ];
 
-  const mockComments: TaskComment[] =
-    task.comments || [
-      {
-        id: '1',
-        author: { name: 'Sarah Lee', avatar: task.assignee.avatar },
-        message: 'Hey, are you design Landing Page hero',
-        time: '2h ago',
-      },
-      {
-        id: '2',
-        author: { name: 'Alex Chen', avatar: task.assignee.avatar },
-        message: 'File dnoimentars',
-        time: '1h ago',
-      },
-    ];
-
   const progressLabel = useMemo(() => {
     const done = mockSubtasks.filter((s) => s.done).length;
     return `${done}/${mockSubtasks.length} done`;
@@ -54,8 +102,8 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, onClose }) => {
       attachment.type === 'figma'
         ? 'bg-black text-white'
         : attachment.type === 'pdf'
-        ? 'bg-red-50 text-red-500'
-        : 'bg-gray-100 text-gray-700';
+          ? 'bg-red-50 text-red-500'
+          : 'bg-gray-100 text-gray-700';
 
     return (
       <div
@@ -67,19 +115,33 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, onClose }) => {
     );
   };
 
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-center justify-center px-4 py-10">
-      <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
         {/* Close */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 text-gray-500"
+          className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 text-gray-500 z-10"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <div className="p-8 space-y-6">
+        <div className="p-8 space-y-6 overflow-y-auto flex-1">
           {/* Header */}
           <div className="space-y-3">
             <h2 className="text-2xl font-bold text-gray-900">{task.title}</h2>
@@ -102,7 +164,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, onClose }) => {
           <div className="space-y-6">
             <p className="text-gray-700 leading-relaxed">
               {task.description ||
-                'Design Landing Page Hero is a connennet design and corporative design, web developments and context to cuts in it.'}
+                'No description provided for this task.'}
             </p>
 
             {/* Checklist */}
@@ -119,39 +181,63 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, onClose }) => {
               </div>
             </div>
 
-            {/* Activity */}
+            {/* Activity / Comments */}
             <div className="space-y-3">
               <div className="text-sm font-semibold text-gray-800">Activity</div>
-              <div className="space-y-3">
-                {mockComments.map((comment) => (
-                  <div key={comment.id} className="flex items-start gap-3">
-                    <img
-                      src={comment.author.avatar}
-                      alt={comment.author.name}
-                      className="h-9 w-9 rounded-full ring-2 ring-white shadow"
-                    />
-                    <div className="bg-gray-50 rounded-2xl px-4 py-3 shadow-sm">
-                      <div className="text-sm text-gray-900 font-medium">{comment.message}</div>
-                      {comment.time && (
-                        <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {comment.time}
-                        </div>
-                      )}
-                    </div>
+              <div className="space-y-3 max-h-60 overflow-y-auto">
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                    <span className="ml-2 text-gray-500 text-sm">Loading comments...</span>
                   </div>
-                ))}
+                ) : comments.length === 0 ? (
+                  <div className="text-gray-400 text-sm text-center py-4">
+                    No comments yet. Be the first to comment!
+                  </div>
+                ) : (
+                  comments.map((comment) => (
+                    <div key={comment.id} className="flex items-start gap-3">
+                      <img
+                        src={comment.author?.avatar_url || `https://i.pravatar.cc/120?u=${comment.author_id}`}
+                        alt={comment.author?.first_name || 'User'}
+                        className="h-9 w-9 rounded-full ring-2 ring-white shadow"
+                      />
+                      <div className="bg-gray-50 rounded-2xl px-4 py-3 shadow-sm flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-semibold text-gray-700">
+                            {comment.author?.first_name} {comment.author?.last_name}
+                          </span>
+                          <span className="text-xs text-gray-400 flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {formatTime(comment.created_at)}
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-900">{comment.content}</div>
+                      </div>
+                    </div>
+                  ))
+                )}
+                <div ref={commentsEndRef} />
               </div>
             </div>
           </div>
         </div>
 
         {/* Input Bar */}
-        <div className="px-6 pb-6">
+        <div className="px-6 pb-6 pt-2 border-t border-gray-100 bg-white">
           <div className="relative bg-white border border-gray-200 rounded-full shadow-sm flex items-center pr-2 pl-4 py-2">
+            <img
+              src={profile?.avatar_url || `https://i.pravatar.cc/120?u=${user?.id}`}
+              alt="You"
+              className="h-8 w-8 rounded-full ring-2 ring-white shadow mr-3"
+            />
             <input
               type="text"
               placeholder="Write a comment..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              onKeyPress={handleKeyPress}
+              disabled={isSending}
               className="flex-1 bg-transparent outline-none text-gray-700 placeholder:text-gray-400 text-sm"
             />
             <div className="flex items-center gap-2">
@@ -163,9 +249,16 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, onClose }) => {
               </button>
               <button
                 type="button"
-                className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-md hover:bg-blue-700"
+                onClick={handleSendComment}
+                disabled={isSending || !newComment.trim()}
+                className={`w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-md hover:bg-blue-700 ${isSending || !newComment.trim() ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
               >
-                <Send className="w-4 h-4" />
+                {isSending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
               </button>
             </div>
           </div>
@@ -176,4 +269,3 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({ task, onClose }) => {
 };
 
 export default TaskDetailModal;
-

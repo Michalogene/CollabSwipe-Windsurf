@@ -162,11 +162,9 @@ const CreateProjectWizard: React.FC = () => {
           creator_id: user.id,
           title: data.title,
           description: buildDescription(),
-          required_skills: data.skills.map((s) => `${s.name} (${s.level})`),
           collaboration_type: data.category,
           status: data.status || 'active',
           deadline: data.deadline || null,
-          media_urls: uploadedMedia.map((m) => m.url),
         })
         .select()
         .single();
@@ -294,9 +292,8 @@ const CreateProjectWizard: React.FC = () => {
                   setStep((s) => Math.min(4, s + 1));
                 }
               }}
-              className={`px-6 py-3 rounded-full font-semibold text-white bg-[#E89E92] shadow-md hover:opacity-90 transition ${
-                submitting || !isStepValid() ? 'opacity-60 cursor-not-allowed' : ''
-              }`}
+              className={`px-6 py-3 rounded-full font-semibold text-white bg-[#E89E92] shadow-md hover:opacity-90 transition ${submitting || !isStepValid() ? 'opacity-60 cursor-not-allowed' : ''
+                }`}
             >
               {submitting ? 'Publishing...' : step === 4 ? 'Publish Project' : 'Next'}
             </button>

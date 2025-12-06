@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
 import {
   MapPin,
@@ -16,6 +16,7 @@ import {
   Settings,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../services/supabase';
 
 type UserProfileData = {
   id: string;
@@ -29,93 +30,125 @@ type UserProfileData = {
   about: string;
   skills: string[];
   featuredProjects: Array<{ id: string; title: string; subtitle: string }>;
-  experiences: Array<{ id: string; title: string; date: string; location: string }>;
 };
 
 const avatar = (id: number) => `https://i.pravatar.cc/200?img=${id}`;
 
-const mockUsers: Record<string, UserProfileData> = {
-  sarah: {
-    id: 'sarah',
-    name: 'Sarah Khan',
-    role: 'Senior Product Designer',
-    location: 'Paris, Remote',
-    views: '500+ Views',
-    matches: '42 Matches',
-    responseRate: '98% Response Rate',
-    avatar: avatar(24),
-    about:
-      'Clean ipsum dolor sit amet, consectetur adipiscing elit. Clean company ous nem consmutarus ques, and reincipenturs.',
-    skills: ['Figma', 'React', 'UX Research'],
-    featuredProjects: [
-      {
-        id: 'p1',
-        title: 'Build bra your Project Invoicing',
-        subtitle: 'Dashboard UI',
-      },
-      {
-        id: 'p2',
-        title: 'Convsae your Project Invoicing',
-        subtitle: 'Analytics UI',
-      },
-    ],
-    experiences: [
-      {
-        id: 'e1',
-        title: 'Lead Designer at TechFlow',
-        date: 'Jun 13, 2024 · Remote',
-        location: 'Remote',
-      },
-      {
-        id: 'e2',
-        title: 'Lead Designer at TechFlow',
-        date: 'May 14, 2024 · Remote',
-        location: 'Remote',
-      },
-      {
-        id: 'e3',
-        title: 'Lead Designer at TechFlow',
-        date: 'Apr 02, 2024 · Remote',
-        location: 'Remote',
-      },
-    ],
-  },
-};
-
 const UserProfile: React.FC = () => {
-  const { profile } = useAuth();
+  const { profile: storedProfile } = useAuth();
   const location = useLocation();
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const [displayProfile, setDisplayProfile] = useState<UserProfileData | null>(null);
+  const [editableProfile, setEditableProfile] = useState<UserProfileData | null>(null);
 
   const isActive = (path: string) => location.pathname.startsWith(path);
 
-  const userData = useMemo(() => {
-    if (id && mockUsers[id]) return mockUsers[id];
-    // Fallback to current user mock
-    return mockUsers['sarah'];
-  }, [id]);
-
-  const isCurrentUser = !id;
-
-  const [editableProfile, setEditableProfile] = useState<UserProfileData>(userData);
-
   useEffect(() => {
-    setEditableProfile(userData);
-  }, [userData]);
+    const fetchProfileData = async () => {
+      setLoading(true);
+      try {
+        const targetId = id;
+        let profileData: any = null;
+
+        if (!targetId) {
+          // Viewing own profile
+          if (storedProfile) {
+            profileData = storedProfile;
+          }
+        } else {
+          // Fetching public profile
+          const { data } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', targetId)
+            .single();
+          if (data) profileData = data;
+        }
+
+        if (profileData) {
+          // Fetch projects for this user
+          const { data: projects } = await supabase
+            .from('projects')
+            .select('id, title, collaboration_type')
+            .eq('creator_id', profileData.id)
+            .limit(4);
+
+          // Get matches count (real data)
+          const { count: matchesCount } = await supabase
+            .from('matches')
+            .select('*', { count: 'exact', head: true })
+            .or(`user1_id.eq.${profileData.id},user2_id.eq.${profileData.id}`);
+
+          const mappedProfile: UserProfileData = {
+            id: profileData.id,
+            name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || 'User',
+            role: profileData.activity || 'Member',
+            location: profileData.location || 'Remote',
+            views: '0', // Not tracked yet
+            matches: (matchesCount || 0).toString(),
+            responseRate: 'N/A', // Not tracked yet
+            avatar: profileData.avatar_url || avatar(0),
+            about: profileData.bio || 'No bio yet.',
+            skills: profileData.skills || [],
+            featuredProjects: projects?.map((p: any) => ({
+              id: p.id,
+              title: p.title,
+              subtitle: p.collaboration_type || 'Project'
+            })) || [],
+          };
+          setDisplayProfile(mappedProfile);
+          setEditableProfile(mappedProfile);
+        }
+      } catch (e) {
+        console.error("Error fetching profile", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfileData();
+  }, [id, storedProfile]);
 
   const handleFieldChange = (key: keyof UserProfileData, value: string | string[]) => {
-    setEditableProfile((prev) => ({ ...prev, [key]: value } as UserProfileData));
+    if (editableProfile) {
+      setEditableProfile((prev) => ({ ...prev!, [key]: value } as UserProfileData));
+    }
   };
 
-  const handleSave = () => {
-    // Mock uniquement (pas de backend ici). En réel, appelerait une API Supabase/profil.
-    setIsEditing(false);
+  const handleSave = async () => {
+    if (!editableProfile) return;
+    try {
+      const nameParts = editableProfile.name.split(' ');
+      const updates = {
+        first_name: nameParts[0],
+        last_name: nameParts.slice(1).join(' '),
+        activity: editableProfile.role,
+        location: editableProfile.location,
+        bio: editableProfile.about,
+        skills: editableProfile.skills
+      };
+
+      const { error } = await supabase.from('profiles').update(updates).eq('id', editableProfile.id);
+      if (!error) {
+        setIsEditing(false);
+        setDisplayProfile(editableProfile);
+      }
+    } catch (e) {
+      console.error("Save failed", e);
+    }
   };
+
+  if (loading) return <div className="p-10 text-center">Loading profile...</div>;
+  if (!displayProfile || !editableProfile) return <div className="p-10 text-center">User not found. Please log in or check the URL.</div>;
+
+  const isCurrentUser = !id || (storedProfile && id === storedProfile.id);
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+    <div className="flex min-h-screen bg-slate-50">
       {/* Sidebar Fixe */}
       <aside className="fixed left-0 top-0 w-64 h-screen bg-white border-r border-gray-100 flex flex-col z-10">
         {/* Logo */}
@@ -145,9 +178,10 @@ const UserProfile: React.FC = () => {
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
           <Link
             to="/discover"
-            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
-              isActive('/discover') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
-            }`}
+            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${isActive('/discover')
+                ? 'bg-blue-50 text-blue-600'
+                : 'text-gray-700 hover:bg-gray-50'
+              }`}
           >
             <Compass className="h-4 w-4" />
             <span>Explore</span>
@@ -163,9 +197,10 @@ const UserProfile: React.FC = () => {
 
           <Link
             to="/projects"
-            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
-              isActive('/projects') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
-            }`}
+            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${isActive('/projects')
+                ? 'bg-blue-50 text-blue-600'
+                : 'text-gray-700 hover:bg-gray-50'
+              }`}
           >
             <Briefcase className="h-4 w-4" />
             <span>My Projects</span>
@@ -173,9 +208,10 @@ const UserProfile: React.FC = () => {
 
           <Link
             to="/favorites"
-            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
-              isActive('/favorites') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
-            }`}
+            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${isActive('/favorites')
+                ? 'bg-blue-50 text-blue-600'
+                : 'text-gray-700 hover:bg-gray-50'
+              }`}
           >
             <Star className="h-4 w-4" />
             <span>Favorites</span>
@@ -190,15 +226,15 @@ const UserProfile: React.FC = () => {
               className="flex items-center gap-3 flex-1 min-w-0 text-left hover:opacity-90 transition-opacity"
             >
               <img
-                src={avatar(64)}
+                src={storedProfile?.avatar_url || avatar(64)}
                 alt="Profile"
                 className="h-9 w-9 rounded-full ring-2 ring-gray-100"
               />
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-gray-900 truncate">
-                  {profile?.first_name && profile?.last_name
-                    ? `${profile.first_name} ${profile.last_name}`
-                    : 'Sarah Lee'}
+                  {storedProfile?.first_name && storedProfile?.last_name
+                    ? `${storedProfile.first_name} ${storedProfile.last_name}`
+                    : 'User'}
                 </div>
                 <div className="text-xs text-gray-500 truncate">Product Lead</div>
               </div>
@@ -219,8 +255,8 @@ const UserProfile: React.FC = () => {
               <div className="h-36 lg:h-40 bg-gradient-to-r from-slate-900 via-blue-900 to-orange-400" />
               <div className="absolute left-8 -bottom-16">
                 <img
-                  src={userData.avatar}
-                  alt={userData.name}
+                  src={displayProfile.avatar}
+                  alt={displayProfile.name}
                   className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
                 />
               </div>
@@ -229,19 +265,23 @@ const UserProfile: React.FC = () => {
             <div className="pt-20 px-8 pb-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-3">
-                  <h2 className="text-3xl font-bold text-gray-900">{editableProfile.name}</h2>
+                  <h2 className="text-3xl font-bold text-gray-900">{displayProfile.name}</h2>
                   <span className="text-gray-500 text-sm flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-gray-400" />
-                    {editableProfile.location}
+                    {displayProfile.location}
                   </span>
                 </div>
-                <div className="text-lg text-gray-700">{editableProfile.role}</div>
+                <div className="text-lg text-gray-700">{displayProfile.role}</div>
                 <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                  <span>{editableProfile.views}</span>
-                  <span className="h-4 w-px bg-gray-200" />
-                  <span>{editableProfile.matches}</span>
-                  <span className="h-4 w-px bg-gray-200" />
-                  <span>{editableProfile.responseRate}</span>
+                  <div className="flex flex-col">
+                    <span className="font-bold text-gray-900">{displayProfile.matches}</span>
+                    <span className="text-xs">Matches</span>
+                  </div>
+                  <span className="h-8 w-px bg-gray-200" />
+                  <div className="flex flex-col">
+                    <span className="font-bold text-gray-900">{displayProfile.views}</span>
+                    <span className="text-xs">Views</span>
+                  </div>
                 </div>
               </div>
 
@@ -274,14 +314,14 @@ const UserProfile: React.FC = () => {
               {/* About Me */}
               <div className="bg-white rounded-[2rem] shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">About Me</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{editableProfile.about}</p>
+                <p className="text-sm text-gray-600 leading-relaxed">{displayProfile.about}</p>
               </div>
 
               {/* Skills */}
               <div className="bg-white rounded-[2rem] shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Skills</h3>
                 <div className="flex flex-wrap gap-2">
-                  {editableProfile.skills.map((skill) => (
+                  {displayProfile.skills.map((skill) => (
                     <span
                       key={skill}
                       className="px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700"
@@ -318,48 +358,40 @@ const UserProfile: React.FC = () => {
               {/* Featured Projects */}
               <div className="bg-white rounded-[2rem] shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Featured Projects</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {editableProfile.featuredProjects.map((project) => (
-                    <div
-                      key={project.id}
-                      className="rounded-2xl bg-slate-900 text-white p-4 h-36 flex flex-col justify-between overflow-hidden relative"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 opacity-70" />
-                      <div className="relative z-10">
-                        <div className="text-xs text-slate-300">{project.subtitle}</div>
-                        <div className="text-lg font-semibold leading-snug mt-1">
-                          {project.title}
+                {displayProfile.featuredProjects.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {displayProfile.featuredProjects.map((project) => (
+                      <div
+                        key={project.id}
+                        className="rounded-2xl bg-slate-900 text-white p-4 h-36 flex flex-col justify-between overflow-hidden relative cursor-pointer"
+                        onClick={() => navigate(`/project/${project.id}`)}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 opacity-70" />
+                        <div className="relative z-10">
+                          <div className="text-xs text-slate-300">{project.subtitle}</div>
+                          <div className="text-lg font-semibold leading-snug mt-1">
+                            {project.title}
+                          </div>
                         </div>
-                      </div>
-                      <div className="relative z-10 flex items-center justify-between text-xs text-slate-300">
-                        <span>Dashboard</span>
-                        <span>Analytics</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Experience */}
-              <div className="bg-white rounded-[2rem] shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Experience</h3>
-                <div className="relative">
-                  <div className="absolute left-4 top-2 bottom-2 w-px bg-gray-200" />
-                  <div className="space-y-6">
-                    {editableProfile.experiences.map((exp) => (
-                      <div key={exp.id} className="pl-10 relative">
-                        <div className="absolute left-2 top-1.5 h-3 w-3 rounded-full bg-blue-500 border-4 border-white shadow" />
-                        <div className="text-base font-semibold text-gray-900">{exp.title}</div>
-                        <div className="text-sm text-gray-500">{exp.date}</div>
+                        <div className="relative z-10 flex items-center justify-between text-xs text-slate-300">
+                          <span>Dashboard</span>
+                          <span>Analytics</span>
+                        </div>
                       </div>
                     ))}
                   </div>
-                </div>
+                ) : (
+                  <div className="text-center py-6 text-gray-500">
+                    No projects yet.
+                  </div>
+                )}
               </div>
+
+              {/* Experience Section Removed */}
             </div>
           </div>
         </div>
-      </main>
+      </main >
 
       {isEditing && (
         <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center px-4">
@@ -399,14 +431,6 @@ const UserProfile: React.FC = () => {
                   className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/60"
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">Response Rate</label>
-                <input
-                  value={editableProfile.responseRate}
-                  onChange={(e) => handleFieldChange('responseRate', e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/60"
-                />
-              </div>
             </div>
 
             <div className="mt-4">
@@ -420,7 +444,7 @@ const UserProfile: React.FC = () => {
             </div>
 
             <div className="mt-4">
-              <label className="text-sm font-medium text-gray-700">Skills (séparées par des virgules)</label>
+              <label className="text-sm font-medium text-gray-700">Skills (comma separated)</label>
               <input
                 value={editableProfile.skills.join(', ')}
                 onChange={(e) =>
@@ -441,13 +465,13 @@ const UserProfile: React.FC = () => {
                 onClick={() => setIsEditing(false)}
                 className="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
               >
-                Annuler
+                Cancel
               </button>
               <button
                 onClick={handleSave}
                 className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow"
               >
-                Enregistrer
+                Save
               </button>
             </div>
           </div>
@@ -458,4 +482,3 @@ const UserProfile: React.FC = () => {
 };
 
 export default UserProfile;
-

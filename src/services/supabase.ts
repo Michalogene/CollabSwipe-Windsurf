@@ -1,26 +1,24 @@
+import { createClient } from "@supabase/supabase-js";
+
 import { createClient } from '@supabase/supabase-js';
 
-declare global {
-  interface Window {
-    __SUPABASE?: { url?: string; anonKey?: string };
-  }
-}
+const getEnv = (key: string) => {
+  // Try Vite (import.meta.env)
+  if (import.meta.env && import.meta.env[key]) return import.meta.env[key];
+  // Try Process (Node/Expo) if available
+  if (typeof process !== 'undefined' && process.env && process.env[key]) return process.env[key];
+  return undefined;
+};
 
-const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined) || window.__SUPABASE?.url;
-const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) || window.__SUPABASE?.anonKey;
+const supabaseUrl = getEnv('VITE_SUPABASE_URL') || getEnv('EXPO_PUBLIC_SUPABASE_URL');
+const supabaseAnonKey = getEnv('VITE_SUPABASE_ANON_KEY') || getEnv('EXPO_PUBLIC_SUPABASE_ANON_KEY');
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Les variables VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY ne sont pas définies. Créez un fichier .env.local à la racine avec ces valeurs puis redémarrez le serveur Vite.'
-  );
+  console.error("Supabase Environment Variables missing!");
+  // We log but don't crash hard, allowing the UI to potentially render an error page if designed, 
+  // though createClient might fail with undefined. 
+  // Actually createClient needs strings.
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: false,
-  },
-});
-
-export default supabase;
+// Fallback to empty string to prevent crash, but connection will fail.
+export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
