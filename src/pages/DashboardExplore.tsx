@@ -236,9 +236,6 @@ const DashboardExplore: React.FC = () => {
           >
             <MessageSquare className="h-4 w-4" />
             <span>Messages</span>
-            <span className="ml-auto h-5 min-w-[20px] px-1.5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-semibold">
-              3
-            </span>
           </Link>
 
           <Link
@@ -257,25 +254,6 @@ const DashboardExplore: React.FC = () => {
             <span>Favorites</span>
           </Link>
 
-          {/* Active Collaborations */}
-          <div className="mt-8 px-1">
-            <div className="text-xs text-gray-500 uppercase tracking-wider mb-3 font-medium px-2">
-              Active Collaborations
-            </div>
-            <Link
-              to="/matches"
-              className="flex -space-x-3 px-2 hover:opacity-80 transition-opacity cursor-pointer"
-            >
-              {[47, 32, 18, 64].map((id) => (
-                <img
-                  key={id}
-                  src={avatar(id)}
-                  alt="Collaborator"
-                  className="h-10 w-10 rounded-full ring-2 ring-white border-2 border-white shadow-sm hover:scale-110 transition-transform"
-                />
-              ))}
-            </Link>
-          </div>
         </nav>
 
         {/* User Profile Footer */}

@@ -130,9 +130,6 @@ const MyProjectsList: React.FC = () => {
           >
             <MessageSquare className="h-4 w-4" />
             <span>Messages</span>
-            <span className="ml-auto h-5 min-w-[20px] px-1.5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-semibold">
-              9
-            </span>
           </Link>
 
           <Link
@@ -155,23 +152,6 @@ const MyProjectsList: React.FC = () => {
             <span>Favorites</span>
           </Link>
         </nav>
-
-        {/* Active Collaborations */}
-        <div className="mt-4 px-2">
-          <div className="text-xs text-gray-500 uppercase tracking-wider mb-3 font-medium px-2">
-            Active Collaborations
-          </div>
-          <div className="flex -space-x-3 px-2">
-            {[47, 32, 18].map((id) => (
-              <img
-                key={id}
-                src={avatar(id)}
-                alt="Collaborator"
-                className="h-10 w-10 rounded-full ring-2 ring-white border-2 border-white shadow-sm"
-              />
-            ))}
-          </div>
-        </div>
 
         {/* User Profile Footer */}
         <div className="border-t border-gray-100 px-4 py-4">
