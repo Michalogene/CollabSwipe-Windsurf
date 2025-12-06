@@ -281,25 +281,27 @@ const DashboardExplore: React.FC = () => {
         {/* User Profile Footer */}
         <div className="border-t border-gray-100 px-4 py-4">
           <div className="flex items-center gap-3">
-            <img
-              src={avatar(64)}
-              alt="Profile"
-              className="h-9 w-9 rounded-full ring-2 ring-gray-100"
-            />
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-gray-900 truncate">
-                {profile?.first_name && profile?.last_name
-                  ? `${profile.first_name} ${profile.last_name}`
-                  : 'Sarah Lee'}
-              </div>
-              <div className="text-xs text-gray-500 truncate">Product Lead</div>
-            </div>
-            <Link
-              to="/profile"
-              className="p-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+            <button
+              onClick={() => navigate('/profile')}
+              className="flex items-center gap-3 flex-1 min-w-0 text-left hover:opacity-90 transition-opacity"
             >
+              <img
+                src={avatar(64)}
+                alt="Profile"
+                className="h-9 w-9 rounded-full ring-2 ring-gray-100"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-gray-900 truncate">
+                  {profile?.first_name && profile?.last_name
+                    ? `${profile.first_name} ${profile.last_name}`
+                    : 'Sarah Lee'}
+                </div>
+                <div className="text-xs text-gray-500 truncate">Product Lead</div>
+              </div>
+            </button>
+            <button className="p-1.5 rounded-lg hover:bg-gray-50 transition-colors">
               <Settings className="h-5 w-5 text-gray-500" />
-            </Link>
+            </button>
           </div>
         </div>
       </aside>
@@ -379,13 +381,14 @@ const DashboardExplore: React.FC = () => {
             </div>
           ) : (
             <>
-              {/* Talent Cards Grid */}
+          {/* Talent Cards Grid */}
               {mode === 'talents' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {filteredTalents.map((talent) => (
                     <div
                       key={talent.id}
-                      className="group relative rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md"
+                  onClick={() => navigate(`/profile/${talent.id}`)}
+                  className="group relative rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md cursor-pointer"
                     >
                       {/* Gradient Header */}
                       <div
@@ -419,7 +422,13 @@ const DashboardExplore: React.FC = () => {
                         </div>
 
                         {/* Connect Button */}
-                        <button className="mt-4 w-full rounded-xl bg-blue-600 text-white py-2.5 font-medium shadow-sm hover:bg-blue-700 transition-colors">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/profile/${talent.id}`);
+                          }}
+                          className="mt-4 w-full rounded-xl bg-blue-600 text-white py-2.5 font-medium shadow-sm hover:bg-blue-700 transition-colors"
+                        >
                           Connect
                         </button>
                       </div>

@@ -7,9 +7,9 @@ import OnboardingPage from './pages/OnboardingPage';
 import ProfileSetupPage from './pages/ProfileSetupPage';
 import MatchesPage from './pages/MatchesPage';
 import ChatPage from './pages/ChatPage';
-import ProfilePage from './pages/ProfilePage';
-import ProjectsPage from './pages/ProjectsPage';
+import UserProfile from './pages/UserProfile';
 import ProjectWorkspace from './pages/ProjectWorkspace';
+import MyProjectsList from './pages/MyProjectsList';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import LoadingSpinner from './components/common/LoadingSpinner';
@@ -105,9 +105,18 @@ function AppContent() {
               </ProtectedRoute>
             } 
           />
-          {/* Project Workspace - Sans Layout (a sa propre sidebar) */}
+          {/* My Projects - Liste */}
           <Route 
             path="/projects" 
+            element={
+              <ProtectedRoute requireProfile={true}>
+                <MyProjectsList />
+              </ProtectedRoute>
+            } 
+          />
+          {/* Project Workspace */}
+          <Route 
+            path="/projects/:id/workspace" 
             element={
               <ProtectedRoute requireProfile={true}>
                 <ProjectWorkspace />
@@ -120,6 +129,23 @@ function AppContent() {
             element={
               <ProtectedRoute requireProfile={true}>
                 <ProjectCanvas />
+              </ProtectedRoute>
+            } 
+          />
+          {/* User Profile - Sans Layout (a sa propre sidebar) */}
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute requireProfile={true}>
+                <UserProfile />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/profile/:id" 
+            element={
+              <ProtectedRoute requireProfile={true}>
+                <UserProfile />
               </ProtectedRoute>
             } 
           />
@@ -138,7 +164,6 @@ function AppContent() {
               <Layout>
                 <Routes>
                   <Route path="/matches" element={<MatchesPage />} />
-                  <Route path="/profile" element={<ProfilePage />} />
                   <Route path="*" element={<Navigate to="/discover" />} />
                 </Routes>
               </Layout>
